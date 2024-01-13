@@ -1,0 +1,26 @@
+pandas
+numpy
+matplotlib
+seaborn
+scikit-learn
+pyyaml
+joblib
+python-box
+flask
+mlflow
+dvc
+dvc[gdrive]
+plotly
+nbformat
+ensure
+optuna
+hyperopt
+tqdm
+xgboost
+# catboost
+imbalanced-learn
+cassandra-driver
+geomet>=0.1,<0.3
+requests
+beautifulsoup4
+-e .

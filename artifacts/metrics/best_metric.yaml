@@ -1,0 +1,11 @@
+Logistic_Regression:
+    Best_Cost: 7230.0
+    Best_Params: &id001
+        penalty: null
+    HyperOpt:
+        cost: 7230
+        params:
+            penalty: l2
+    Optuna:
+        cost: 7230.0
+        params: *id001
