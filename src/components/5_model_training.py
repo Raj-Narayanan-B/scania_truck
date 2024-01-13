@@ -41,15 +41,15 @@ class model_trainer_component:
 
         models = {'Logistic_Regression': LogisticRegression(solver = 'saga', max_iter=100), 
                   'SGD_Classifier': SGDClassifier(),
-                  'Random Forest': RandomForestClassifier(), 
+                  'Random Forest': RandomForestClassifier(n_jobs= -1), 
                   'Ada_Boost': AdaBoostClassifier(), 
                   'Grad_Boost': GradientBoostingClassifier(), 
-                  'Bagging_Classifier': BaggingClassifier(), 
-                  'ExtraTreesClassifier': ExtraTreesClassifier(), 
+                  'Bagging_Classifier': BaggingClassifier(n_jobs=-1), 
+                  'ExtraTreesClassifier': ExtraTreesClassifier(n_jobs=-1), 
                   'Hist_Grad_Boost_Classifier': HistGradientBoostingClassifier(), 
                   'Decision_Tree_Classifier': DecisionTreeClassifier(),
-                  'XGB_Classifier': XGBClassifier(),
-                  'KNN_Classifier': KNeighborsClassifier(),
+                  'XGB_Classifier': XGBClassifier(n_jobs=-1),
+                  'KNN_Classifier': KNeighborsClassifier(n_jobs=-1),
                   'MLP_Classifier': MLPClassifier()
                   }
         logger.info("Commencing models hyper-parameter tuning")

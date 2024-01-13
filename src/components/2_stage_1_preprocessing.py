@@ -2,6 +2,7 @@ from src.config.configuration_manager import ConfigurationManager
 from src.entity.entity_config import Stage1ProcessingConf,DataPathConf,DataSplitConf
 from src.utils import stage_1_processing_function,schema_saver,train_test_splitter
 import pandas as pd
+import os
 
 class stage_1_processing_component:
     def __init__(self, preprocess_conf: Stage1ProcessingConf, data_conf: DataPathConf, split_conf: DataSplitConf) -> None:

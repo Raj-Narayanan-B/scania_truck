@@ -1,0 +1,61 @@
+schema: '2.0'
+stages:
+  pip_requirements:
+    cmd: python pip_install.py
+  stage_1_processing:
+    cmd: python src/components/2_stage_1_preprocessing.py
+    deps:
+    - path: artifacts/data/raw/test_data_1.csv
+      hash: md5
+      md5: 533af08600512981ce8a08ef67b4ecca
+      size: 5082459
+    - path: artifacts/data/raw/test_data_2.csv
+      hash: md5
+      md5: 8fd093f2ee05f54e8caa22fe55c9601a
+      size: 5314170
+    - path: artifacts/data/raw/test_data_3.csv
+      hash: md5
+      md5: 0afbc2bf50d94ab9deb968a1e22ab654
+      size: 1816483
+    - path: artifacts/data/raw/train_data_1.csv
+      hash: md5
+      md5: 259d633b73dcff0024112122c20f5352
+      size: 19032277
+    - path: artifacts/data/raw/train_data_2.csv
+      hash: md5
+      md5: 0dc840a281d99dfb0f5f26efb06cf289
+      size: 19921813
+    - path: artifacts/data/raw/train_data_3.csv
+      hash: md5
+      md5: e145c8dba3370ab3616c69fae3702588
+      size: 6820608
+    - path: src/components/1_data_ingestion.py
+      hash: md5
+      md5: 19ff1d3dfe3860d1581a2322c7404b20
+      size: 2038
+  data_splitting:
+    cmd: python src/components/3_data_split.py
+    deps:
+    - path: artifacts/data/processed/stage_1_processing/preprocessed_train_data.csv
+      hash: md5
+      md5: 44041bed0bc771771ad47826f5830911
+      size: 60962888
+    - path: src/components/2_stage_1_preprocessing.py
+      hash: md5
+      md5: e925de8762373105ec05c5f5b4a99ec8
+      size: 1739
+  stage_2_processing:
+    cmd: python src/components/4_stage_2_preprocessing.py
+    deps:
+    - path: artifacts/data/train_test/test.csv
+      hash: md5
+      md5: d35e732d30d219c714050b29d72eaa0e
+      size: 15233260
+    - path: artifacts/data/train_test/train.csv
+      hash: md5
+      md5: e3132d2cf47bf03c950833c298fbf883
+      size: 45730821
+    - path: src/components/3_data_split.py
+      hash: md5
+      md5: fc0f530b7fc7a2740968dfe22b8642dc
+      size: 1151

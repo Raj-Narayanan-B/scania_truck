@@ -1,4 +1,6 @@
 stages:
+  pip_requirements:
+    cmd: python pip_install.py
   # data_ingestion:
   #   cmd: python src/components/1_data_ingestion.py
   #   deps:
