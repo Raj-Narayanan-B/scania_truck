@@ -1,0 +1,4 @@
+[core]
+    remote = scania_dvc_gdrive
+['remote "scania_dvc_gdrive"']
+    url = https://drive.google.com/drive/folders/1Z0zUZSGy9rLU7q9F2szzhfV7q5P-_0eo
