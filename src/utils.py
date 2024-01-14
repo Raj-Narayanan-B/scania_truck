@@ -274,7 +274,9 @@ def parameter_tuning(model_class : ML_Model,
         model.set_params(**space_optuna)
         model.fit(x_train, y_train)
         y_pred = model.predict(x_test)
-        return eval_metrics(y_true = y_test , y_pred = y_pred)
+        cost = eval_metrics(y_true = y_test , y_pred = y_pred)
+    
+        return cost
     find_param=optuna.create_study(direction = "minimize")
     find_param.optimize(optuna_objective,n_trials=10)
 
@@ -287,7 +289,9 @@ def parameter_tuning(model_class : ML_Model,
         model.set_params(**space)
         model.fit(x_train, y_train)
         y_pred = model.predict(x_test)
-        return eval_metrics(y_true = y_test , y_pred = y_pred)
+        cost = eval_metrics(y_true = y_test , y_pred = y_pred)
+        print ("Cost: ", cost)
+        return cost
     trials = Trials()
     space = {}
     for key,value in params_config['hyperopt'][model_name].items():

@@ -2,8 +2,8 @@ artifacts_root: 'artifacts'
 
 data_ingestion_config:
   train_data1:
-    secure_connect_bundle: Secrets/Bundles/secure-connect-scania-truck-failure-1.zip
-    token: Secrets/Tokens/scania_truck_failure_1-token.json
+    secure_connect_bundle: 'Secrets/Bundles/secure-connect-scania-truck-failure-1.zip'
+    token: 'Secrets/Tokens/scania_truck_failure_1-token.json'
     key_space_train_data_1: scania_truck_failure1
     table_train_data_1: train_data1
     path: artifacts/data/raw/train_data_1.csv
@@ -79,11 +79,3 @@ model_metrics:
 preprocessor:
   root_dir: 'artifacts/preprocessor'
   preprocessor_path: 'artifacts/preprocessor/preprocessor.joblib'
-
-
-
-
-
-
-
-

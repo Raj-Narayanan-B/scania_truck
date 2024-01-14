@@ -4,13 +4,13 @@ from src.utils import stage_1_processing_function,schema_saver,train_test_splitt
 import pandas as pd
 import os
 
-class stage_1_processing_component:
+class stage_2_initial_processing_component:
     def __init__(self, preprocess_conf: Stage1ProcessingConf, data_conf: DataPathConf, split_conf: DataSplitConf) -> None:
         self.preprocess_config = preprocess_conf
         self.data_config = data_conf
         self.split_config = split_conf
 
-    def stage_1_processing(self):
+    def initial_processing(self):
         train_df_1 = pd.read_csv(self.data_config.train_data1)
         train_df_2 = pd.read_csv(self.data_config.train_data2)
         train_df_3 = pd.read_csv(self.data_config.train_data3)
@@ -31,7 +31,7 @@ config_obj = ConfigurationManager()
 preprocessing_obj = config_obj.get_stage1_processing_config()
 data_obj = config_obj.get_data_path_config()
 split_obj = config_obj.get_data_split_config()
-obj = stage_1_processing_component(preprocess_conf = preprocessing_obj,
+obj = stage_2_initial_processing_component(preprocess_conf = preprocessing_obj,
                                    data_conf = data_obj,
                                    split_conf=split_obj)
-obj.stage_1_processing()
+obj.initial_processing()

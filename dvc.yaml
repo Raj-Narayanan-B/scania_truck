@@ -37,18 +37,18 @@ stages:
       - artifacts/data/raw/test_data_1.csv
       - artifacts/data/raw/test_data_2.csv
       - artifacts/data/raw/test_data_3.csv
-    # outs: 
-    #   - artifacts/data/processed/stage_1_processing/preprocessed_test_data.csv
-    #   - artifacts/data/processed/stage_1_processing/preprocessed_train_data.csv
+    outs: 
+      - artifacts/data/processed/stage_1_processing/preprocessed_test_data.csv
+      - artifacts/data/processed/stage_1_processing/preprocessed_train_data.csv
 
   data_splitting:
     cmd: python src/components/3_data_split.py
     deps: 
       - src/components/2_stage_1_preprocessing.py
       - artifacts/data/processed/stage_1_processing/preprocessed_train_data.csv
-    # outs:
-    #   - artifacts/data/train_test/train.csv
-    #   - artifacts/data/train_test/test.csv
+    outs:
+      - artifacts/data/train_test/train.csv
+      - artifacts/data/train_test/test.csv
 
   stage_2_processing:
     cmd: python src/components/4_stage_2_preprocessing.py
@@ -56,9 +56,9 @@ stages:
       - src/components/3_data_split.py
       - artifacts/data/train_test/train.csv
       - artifacts/data/train_test/test.csv
-    # outs: 
-    #   - artifacts/data/processed/stage_2_processing/processed_train_data.csv
-    #   - artifacts/data/processed/stage_2_processing/processed_test_data.csv
+    outs: 
+      - artifacts/data/processed/stage_2_processing/processed_train_data.csv
+      - artifacts/data/processed/stage_2_processing/processed_test_data.csv
 
   model_trainer:
     cmd: python src/components/5_model_training.py
@@ -66,6 +66,8 @@ stages:
       - src/components/4_stage_2_preprocessing.py
       - artifacts/data/processed/stage_2_processing/processed_train_data.csv
       - artifacts/data/processed/stage_2_processing/processed_test_data.csv
+    # outs:
+    #   - artifacts/model/model.joblib
 
   # test_data_prediction:
   #   cmd: python src/components/7_original_testdata_prediction.py
