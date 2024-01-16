@@ -32,14 +32,14 @@ from sklearn.model_selection import RandomizedSearchCV
 import optuna
 from hyperopt import hp, fmin, Trials, tpe, STATUS_OK, space_eval
 from hyperopt.pyll.base import scope
+# import ruamel.yaml as yaml
 
-
-@ensure_annotations
 def load_yaml(filepath:Path):
     try:
         filepath_,filename = os.path.split(filepath)
         with open(filepath) as yaml_file:
-            config = yaml.safe_load(yaml_file)
+            config = yaml.load(yaml_file,
+                               Loader = yaml.CLoader)
             logger.info(f"{filename} yaml_file is loaded")
             return ConfigBox(config)
     except Exception as e:
@@ -270,8 +270,11 @@ def parameter_tuning(model_class : ML_Model,
         space_optuna = {}
         for key,value in params_config['optuna'][model_name].items():
             space_optuna[key] = eval(value)
-        model = model_class
-        model.set_params(**space_optuna)
+        if model_name == 'Stacked_Classifier':
+            model = model_class.set_params(**space_optuna)
+        else:
+            model = model_class(**space_optuna)
+        # model.set_params(**space_optuna)
         model.fit(x_train, y_train)
         y_pred = model.predict(x_test)
         cost = eval_metrics(y_true = y_test , y_pred = y_pred)
@@ -285,8 +288,11 @@ def parameter_tuning(model_class : ML_Model,
 
 ####################################################### HYPEROPT #######################################################
     def hp_objective(space):
-        model = model_class
-        model.set_params(**space)
+        if model_name == 'Stacked_Classifier':
+            model = model_class.set_params(**space)
+        else:
+            model = model_class(**space)
+        # model.set_params(**space)
         model.fit(x_train, y_train)
         y_pred = model.predict(x_test)
         cost = eval_metrics(y_true = y_test , y_pred = y_pred)
@@ -305,36 +311,38 @@ def parameter_tuning(model_class : ML_Model,
     tuner_report['HyperOpt'] = {'cost':int(trials.average_best_error()), 'params': best_params}
     print (f"HyperOpt: {model_name} --- {tuner_report['HyperOpt']}\n\n")
 
-####################################################### BestCost & BestParams #######################################################
+####################################################### Best_Cost & Best_Fittable_Params #######################################################
     min_cost_value = min(tuner_report['Optuna']['cost'],tuner_report['HyperOpt']['cost'])
-    print(f'Min_Value: {min_cost_value}')
     if min_cost_value == tuner_report['Optuna']['cost']:
         params = tuner_report['Optuna']['params']
     else:
         params = tuner_report['HyperOpt']['params']
-    tuner_report['Best_Params'] = params
+    tuner_report['Fittable_Params'] = params
     tuner_report['Best_Cost'] = min_cost_value
 
     report_[model_name] = tuner_report
-    print ('\n',report_,'\n\n',model_name,'\n',report_[model_name])
+    print (f'\n\n{model_name}\nMin Cost: {min_cost_value}\n{report_[model_name]}\n\n')
     # print(report_.values())
     costs = [value['Best_Cost'] for value in report_.values()]
     min_cost = min(costs)
-    best_model_so_far_ = [(i, min_cost, report_[i]['Best_Params']) for i in report_.keys() if min_cost == report_[i]['Best_Cost']]
+    best_model_so_far_ = [(i, min_cost, report_[i]['Fittable_Params']) for i in report_.keys() if min_cost == report_[i]['Best_Cost']]
 
     return (tuner_report, report_, best_model_so_far_)
 
 def best_model_finder(report: dict, models: dict):
-    best_models_ = sorted(report.items(), key = lambda x: x[1]['Best_Cost'])[:3]
-    best_models = [best_models_[i][0] for i in range(len(best_models_))]
-    print('best_models: \n', best_models)
+    best_models_ = sorted(report.items(), key = lambda x: x[1]['Best_Cost'])[:7]
+    best_models = [(best_models_[i][0],report[best_models_[i][0]]['Best_Cost']) for i in range(len(best_models_))]
+    print('\nBest Models:')
+    for i in best_models:
+        print(i[0]," Cost: ", i[1])
     best_models_with_params = []
     for i in best_models:
-        best_models_with_params.append((i,report[i]['Best_Params']))
+        # print(f"i: {i[0]}")
+        best_models_with_params.append((i[0],report[i[0]]['Fittable_Params']))
     best_estimators = {}
-    print("report:\n",report)
+    # print("report:\n",report)
     for i in range(len(best_models_with_params)):
-        print ("best_models_with_params[i][0]: \n",best_models_with_params[i][0])
+        # print ("best_models_with_params[i][0]: \n",best_models_with_params[i][0])
         if (best_models_with_params[i][0] == 'Stacked_Classifier'): #best_models_with_params[i][0] == 'Voting_Classifier'):
             best_estimators[best_models_with_params[i][0]] = models[best_models_with_params[i][0]]
             # best_estimators[best_models_with_params[i][0]].set_params(**best_models_with_params[i][1])
@@ -343,12 +351,100 @@ def best_model_finder(report: dict, models: dict):
             best_estimators[best_models_with_params[i][0]] = models[best_models_with_params[i][0]]
             # best_estimators[best_models_with_params[i][0]].set_params()
         else:
-            best_estimators[best_models_with_params[i][0]] = models[best_models_with_params[i][0]]
-            best_estimators[best_models_with_params[i][0]].set_params(**best_models_with_params[i][1])
+            best_estimators[best_models_with_params[i][0]] = models[best_models_with_params[i][0]](**best_models_with_params[i][1])
+            # best_estimators[best_models_with_params[i][0]].set_params(**best_models_with_params[i][1])
     best_estimators = list(zip(best_estimators.keys(),best_estimators.values()))
 
     costs = [value['Best_Cost'] for value in report.values()]
     min_cost = min(costs)
-    best_model_so_far_ = [(i, min_cost, report[i]['Best_Params']) for i in report.keys() if min_cost == report[i]['Best_Cost']]
+    best_model_so_far_ = [(i, min_cost, report[i]['Fittable_Params']) for i in report.keys() if min_cost == report[i]['Best_Cost']]
 
     return (best_model_so_far_,best_models_with_params,best_estimators)
+
+def stacking_clf_trainer(best_estimators:list[tuple], models: dict, best_model_so_far_: list[tuple],
+                         x_train: pd.DataFrame, y_train: pd.DataFrame, x_test: pd.DataFrame, y_test: pd.DataFrame,
+                         report: dict) ->dict:
+    stacked_classifier = StackingClassifier(estimators = best_estimators,
+                                    final_estimator =  models[best_model_so_far_[0][0]](**best_model_so_far_[0][2]),
+                                    cv = 5,
+                                    n_jobs = -1,
+                                    passthrough = False,
+                                    verbose = 3)
+    tuned_params, stacked_clf_report, best_model_so_far = parameter_tuning(model_class = stacked_classifier,
+                                                                model_name = 'Stacked_Classifier',
+                                                                x_train = x_train,
+                                                                x_test = x_test,
+                                                                y_train = y_train,
+                                                                y_test = y_test,
+                                                                report_ = report)
+    models_names_in_stacking_classifier, models_params_in_stacking_classifier = zip(*best_estimators)
+    report['Stacked_Classifier'] = {}
+    sc_params = {}
+    sc_params['estimators'] = best_estimators
+    sc_params['final_estimator'] = stacked_classifier.get_params()['final_estimator']
+    sc_params['cv'] = stacked_classifier.get_params()['cv']
+    sc_params['n_jobs'] = stacked_classifier.get_params()['n_jobs']
+
+    for i in range(len(models_names_in_stacking_classifier)):
+        report['Stacked_Classifier'][models_names_in_stacking_classifier[i]] = models_params_in_stacking_classifier[i].get_params()
+
+    report['Stacked_Classifier']['Best_Cost'] = tuned_params['Best_Cost']
+
+    for i in sc_params.keys():
+        tuned_params['Fittable_Params'][i] = sc_params[i]
+
+    report['Stacked_Classifier']['Optuna'] = tuned_params['Optuna']
+    report['Stacked_Classifier']['HyperOpt'] = tuned_params['HyperOpt']
+    report['Stacked_Classifier']['Fittable_Params'] = tuned_params['Fittable_Params']
+
+    return report
+
+    # models['Stacked_Classifier'] = StackingClassifier(**report['Stacked_Classifier']['Fittable_Params'])
+
+def voting_clf_trainer(best_estimators:list[tuple],
+                       x_train: pd.DataFrame, y_train: pd.DataFrame, x_test: pd.DataFrame, y_test: pd.DataFrame,
+                       report: dict) -> dict:
+    voting_classifier_ = VotingClassifier(estimators = best_estimators,
+                                                    voting = "hard",
+                                                    weights = None,
+                                                    n_jobs = -1,
+                                                    verbose = True)
+    voting_classifier_.fit(x_train,y_train)
+    y_pred = voting_classifier_.predict(x_test)
+    cost = eval_metrics(y_true = y_test, y_pred = y_pred)
+    print(f"\nVoting Classifier Cost: {cost} \n")
+    
+    vc_params = {}
+    vc_params['estimators'] = best_estimators
+    vc_params['voting'] = voting_classifier_.get_params()['voting']
+    vc_params['weights'] = voting_classifier_.get_params()['weights']
+    vc_params['n_jobs'] = voting_classifier_.get_params()['n_jobs']
+
+    report['Voting_Classifier'] = {}
+    report['Voting_Classifier']['Best_Cost'] = cost
+
+    report['Voting_Classifier']['Fittable_Params'] = vc_params
+
+    return report
+
+def model_trainer(x_train : pd.DataFrame, y_train : pd.DataFrame, x_test : pd.DataFrame, y_test : pd.DataFrame,
+                  model_: ML_Model = None, 
+                  models: dict = None,
+                  params: dict = None,
+                  best_model_details: list[tuple] = None):
+    if models:
+        model_class = models[best_model_details[0][0]]
+        print(f"\nBest Model Details: {best_model_details}")
+        print("\nModel: ",model_class)
+        print("\nModels: ",models)
+        print(f"\nModel params: {best_model_details[0][2]}")
+        model = model_class(**best_model_details[0][2])
+    elif model:
+        model = model_(**params)
+        print("\nModel: ",model)
+    model.fit(x_train, y_train)
+    print(f"\nmodel_getparams(): {model.get_params()}\n")
+    y_pred = model.predict(x_test)
+    cost = eval_metrics(y_true = y_test, y_pred = y_pred)
+    
+    return cost

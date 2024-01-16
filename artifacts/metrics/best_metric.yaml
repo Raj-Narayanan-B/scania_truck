@@ -1,11 +1,11 @@
-Logistic_Regression:
-    Best_Cost: 7230.0
-    Best_Params: &id001
-        penalty: null
+SGD_Classifier:
+    Best_Cost: 2820.0
+    Fittable_Params: &id001
+        loss: hinge
     HyperOpt:
-        cost: 7230
+        cost: 2870
         params:
-            penalty: l2
+            loss: perceptron
     Optuna:
-        cost: 7230.0
+        cost: 2820.0
         params: *id001

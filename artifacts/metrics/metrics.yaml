@@ -1,0 +1,233 @@
+Decision_Tree_Classifier:
+    Best_Cost: 69590
+    Fittable_Params: &id001
+        criterion: entropy
+        max_features: log2
+        splitter: best
+    HyperOpt:
+        cost: 69590
+        params: *id001
+    Optuna:
+        cost: 72610.0
+        params:
+            criterion: gini
+            max_features: sqrt
+            splitter: random
+KNN_Classifier:
+    Best_Cost: 89190.0
+    Fittable_Params: &id002
+        algorithm: brute
+        n_neighbors: 5
+        weights: uniform
+    HyperOpt:
+        cost: 90190
+        params:
+            algorithm: brute
+            n_neighbors: 10
+            weights: uniform
+    Optuna:
+        cost: 89190.0
+        params: *id002
+Logistic_Regression:
+    Best_Cost: 59980.0
+    Fittable_Params: &id003
+        penalty: l2
+    HyperOpt:
+        cost: 59980
+        params:
+            penalty: l2
+    Optuna:
+        cost: 59980.0
+        params: *id003
+SGD_Classifier:
+    Best_Cost: 2820.0
+    Fittable_Params: &id004
+        loss: hinge
+    HyperOpt:
+        cost: 2870
+        params:
+            loss: perceptron
+    Optuna:
+        cost: 2820.0
+        params: *id004
+Stacked_Classifier:
+    Best_Cost: 2850.0
+    Decision_Tree_Classifier:
+        ccp_alpha: 0.0
+        class_weight: null
+        criterion: entropy
+        max_depth: null
+        max_features: log2
+        max_leaf_nodes: null
+        min_impurity_decrease: 0.0
+        min_samples_leaf: 1
+        min_samples_split: 2
+        min_weight_fraction_leaf: 0.0
+        random_state: null
+        splitter: best
+    Fittable_Params: &id005
+        cv: 5
+        estimators: &id006
+        - !!python/tuple
+            - SGD_Classifier
+            - !!python/object:sklearn.linear_model._stochastic_gradient.SGDClassifier
+                C: 1.0
+                _sklearn_version: 1.3.2
+                alpha: 0.0001
+                average: false
+                class_weight: null
+                early_stopping: false
+                epsilon: 0.1
+                eta0: 0.0
+                fit_intercept: true
+                l1_ratio: 0.15
+                learning_rate: optimal
+                loss: hinge
+                max_iter: 1000
+                n_iter_no_change: 5
+                n_jobs: null
+                penalty: l2
+                power_t: 0.5
+                random_state: null
+                shuffle: true
+                tol: 0.001
+                validation_fraction: 0.1
+                verbose: 0
+                warm_start: false
+        - !!python/tuple
+            - Logistic_Regression
+            - !!python/object:sklearn.linear_model._logistic.LogisticRegression
+                C: 1.0
+                _sklearn_version: 1.3.2
+                class_weight: null
+                dual: false
+                fit_intercept: true
+                intercept_scaling: 1
+                l1_ratio: null
+                max_iter: 100
+                multi_class: auto
+                n_jobs: null
+                penalty: l2
+                random_state: null
+                solver: lbfgs
+                tol: 0.0001
+                verbose: 0
+                warm_start: false
+        - !!python/tuple
+            - Decision_Tree_Classifier
+            - !!python/object:sklearn.tree._classes.DecisionTreeClassifier
+                _sklearn_version: 1.3.2
+                ccp_alpha: 0.0
+                class_weight: null
+                criterion: entropy
+                max_depth: null
+                max_features: log2
+                max_leaf_nodes: null
+                min_impurity_decrease: 0.0
+                min_samples_leaf: 1
+                min_samples_split: 2
+                min_weight_fraction_leaf: 0.0
+                random_state: null
+                splitter: best
+        - !!python/tuple
+            - KNN_Classifier
+            - !!python/object:sklearn.neighbors._classification.KNeighborsClassifier
+                _sklearn_version: 1.3.2
+                algorithm: brute
+                leaf_size: 30
+                metric: minkowski
+                metric_params: null
+                n_jobs: null
+                n_neighbors: 5
+                p: 2
+                radius: null
+                weights: uniform
+        final_estimator: !!python/object:sklearn.linear_model._stochastic_gradient.SGDClassifier
+            C: 1.0
+            _sklearn_version: 1.3.2
+            alpha: 0.0001
+            average: false
+            class_weight: null
+            early_stopping: false
+            epsilon: 0.1
+            eta0: 0.0
+            fit_intercept: true
+            l1_ratio: 0.15
+            learning_rate: optimal
+            loss: hinge
+            max_iter: 1000
+            n_iter_no_change: 5
+            n_jobs: null
+            penalty: l2
+            power_t: 0.5
+            random_state: null
+            shuffle: true
+            tol: 0.001
+            validation_fraction: 0.1
+            verbose: 0
+            warm_start: false
+        n_jobs: -1
+        passthrough: true
+        stack_method: predict
+    HyperOpt:
+        cost: 2900
+        params:
+            passthrough: false
+            stack_method: auto
+    KNN_Classifier:
+        algorithm: brute
+        leaf_size: 30
+        metric: minkowski
+        metric_params: null
+        n_jobs: null
+        n_neighbors: 5
+        p: 2
+        weights: uniform
+    Logistic_Regression:
+        C: 1.0
+        class_weight: null
+        dual: false
+        fit_intercept: true
+        intercept_scaling: 1
+        l1_ratio: null
+        max_iter: 100
+        multi_class: auto
+        n_jobs: null
+        penalty: l2
+        random_state: null
+        solver: lbfgs
+        tol: 0.0001
+        verbose: 0
+        warm_start: false
+    Optuna:
+        cost: 2850.0
+        params: *id005
+    SGD_Classifier:
+        alpha: 0.0001
+        average: false
+        class_weight: null
+        early_stopping: false
+        epsilon: 0.1
+        eta0: 0.0
+        fit_intercept: true
+        l1_ratio: 0.15
+        learning_rate: optimal
+        loss: hinge
+        max_iter: 1000
+        n_iter_no_change: 5
+        n_jobs: null
+        penalty: l2
+        power_t: 0.5
+        random_state: null
+        shuffle: true
+        tol: 0.001
+        validation_fraction: 0.1
+        verbose: 0
+        warm_start: false
+Voting_Classifier:
+    Best_Cost: 79650.0
+    Fittable_Params:
+        estimators: *id006
+        n_jobs: -1
+        voting: hard
+        weights: null

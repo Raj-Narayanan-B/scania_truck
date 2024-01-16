@@ -22,13 +22,14 @@ class data_splitting_component:
         
         train_data_training_set,train_data_testing_set = train_test_splitter(df)
 
-        train_data_training_set.to_csv(self.split_config.train_path,index=False)
-        train_data_testing_set.to_csv(self.split_config.test_path,index=False)
-
         print ("Pre_train_data shape: ",train_data_training_set.shape,
                "Pre_test_data shape: ",train_data_testing_set.shape)
-
-        return (train_data_training_set,train_data_testing_set)
+        
+        if not args:
+            train_data_training_set.to_csv(self.split_config.train_path,index=False)
+            train_data_testing_set.to_csv(self.split_config.test_path,index=False)
+        else:
+            return (train_data_training_set,train_data_testing_set)
 
 # obj = ConfigurationManager()
 # stage_1_obj = obj.get_stage1_processing_config()
