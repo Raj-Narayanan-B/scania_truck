@@ -79,16 +79,16 @@ class model_tuning_tracking_component:
 
         models = {'Logistic_Regression': LogisticRegression, 
                   'SGD_Classifier': SGDClassifier,
-                #   'Random Forest': RandomForestClassifier(), 
-                #   'Ada_Boost': AdaBoostClassifier(), 
-                #   'Grad_Boost': GradientBoostingClassifier(), 
-                #   'Bagging_Classifier': BaggingClassifier(), 
-                #   'ExtraTreesClassifier': ExtraTreesClassifier(), 
-                #   'Hist_Grad_Boost_Classifier': HistGradientBoostingClassifier(), 
+                  'Random Forest': RandomForestClassifier, 
+                  'Ada_Boost': AdaBoostClassifier, 
+                  'Grad_Boost': GradientBoostingClassifier, 
+                  'Bagging_Classifier': BaggingClassifier, 
+                  'ExtraTreesClassifier': ExtraTreesClassifier, 
+                  'Hist_Grad_Boost_Classifier': HistGradientBoostingClassifier, 
                   'Decision_Tree_Classifier': DecisionTreeClassifier,
-                #   'XGB_Classifier': XGBClassifier(),
+                  'XGB_Classifier': XGBClassifier,
                   'KNN_Classifier': KNeighborsClassifier,
-                #   'MLP_Classifier': MLPClassifier()
+                  'MLP_Classifier': MLPClassifier
                   }
         logger.info("Commencing models hyper-parameter tuning")
         report = {}

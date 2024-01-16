@@ -334,7 +334,7 @@ def best_model_finder(report: dict, models: dict):
     best_models = [(best_models_[i][0],report[best_models_[i][0]]['Best_Cost']) for i in range(len(best_models_))]
     print('\nBest Models:')
     for i in best_models:
-        print(i[0]," Cost: ", i[1])
+        print(i[0]," Cost: ", i[1],'\n\n')
     best_models_with_params = []
     for i in best_models:
         # print(f"i: {i[0]}")
