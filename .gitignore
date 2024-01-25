@@ -176,3 +176,7 @@ README for DB.md
 # artifacts/data/train_test/train.csv
 # artifacts/data/processed/stage_2_processing/processed_test_data.csv
 .gitattributes
+
+notebooks/mlruns/
+mlruns/
+stacked_classifier_params.txt

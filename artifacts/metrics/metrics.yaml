@@ -1,168 +1,179 @@
 Ada_Boost:
-    Best_Cost: 65550.0
+    Best_Cost: 38520
     Fittable_Params: &id001
         algorithm: SAMME
         n_estimators: 109
     HyperOpt:
-        cost: 66050
+        Cost: 38520
+        params: *id001
+    Optuna:
+        Cost: 42520.0
         params:
             algorithm: SAMME
-            n_estimators: 114
-    Optuna:
-        cost: 65550.0
-        params: *id001
+            n_estimators: 146
 Bagging_Classifier:
-    Best_Cost: 105510.0
+    Best_Cost: 33060
     Fittable_Params: &id002
-        n_estimators: 61
+        n_estimators: 65
     HyperOpt:
-        cost: 105510
-        params:
-            n_estimators: 52
-    Optuna:
-        cost: 105510.0
+        Cost: 33060
         params: *id002
+    Optuna:
+        Cost: 44060.0
+        params:
+            n_estimators: 73
 Decision_Tree_Classifier:
-    Best_Cost: 63110.0
+    Best_Cost: 48060
     Fittable_Params: &id003
         criterion: gini
-        max_features: sqrt
-        splitter: random
+        max_features: null
+        splitter: best
     HyperOpt:
-        cost: 74540
-        params:
-            criterion: gini
-            max_features: sqrt
-            splitter: best
-    Optuna:
-        cost: 63110.0
+        Cost: 48060
         params: *id003
+    Optuna:
+        Cost: 76060.0
+        params:
+            criterion: entropy
+            max_features: null
+            splitter: best
 ExtraTreesClassifier:
-    Best_Cost: 61550.0
+    Best_Cost: 50050
     Fittable_Params: &id004
         class_weight: balanced
-        criterion: entropy
+        criterion: gini
         max_features: log2
-        n_estimators: 569
+        n_estimators: 882
     HyperOpt:
-        cost: 62040
+        Cost: 50050
+        params: *id004
+    Optuna:
+        Cost: 55530.0
         params:
             class_weight: balanced
-            criterion: log_loss
+            criterion: gini
             max_features: sqrt
-            n_estimators: 296
-    Optuna:
-        cost: 61550.0
-        params: *id004
+            n_estimators: 319
 Grad_Boost:
-    Best_Cost: 51050
+    Best_Cost: 44060
     Fittable_Params: &id005
-        criterion: friedman_mse
-        loss: exponential
-        max_features: log2
-        n_estimators: 100
+        criterion: squared_error
+        loss: log_loss
+        max_features: null
+        n_estimators: 134
     HyperOpt:
-        cost: 51050
+        Cost: 44060
         params: *id005
     Optuna:
-        cost: 53550.0
+        Cost: 44560.0
         params:
-            criterion: friedman_mse
-            loss: log_loss
-            max_features: log2
-            n_estimators: 142
+            criterion: squared_error
+            loss: exponential
+            max_features: null
+            n_estimators: 107
 Hist_Grad_Boost_Classifier:
-    Best_Cost: 61040
+    Best_Cost: 31030.0
     Fittable_Params: &id006
-        max_iter: 125
+        max_iter: 534
     HyperOpt:
-        cost: 61040
-        params: *id006
-    Optuna:
-        cost: 62540.0
+        Cost: 31030
         params:
-            max_iter: 464
+            max_iter: 751
+    Optuna:
+        Cost: 31030.0
+        params: *id006
 KNN_Classifier:
-    Best_Cost: 88690.0
+    Best_Cost: 53210.0
     Fittable_Params: &id007
-        algorithm: auto
-        n_neighbors: 9
+        algorithm: brute
+        n_neighbors: 11
         weights: uniform
     HyperOpt:
-        cost: 90190
+        Cost: 56180
         params:
-            algorithm: auto
-            n_neighbors: 10
+            algorithm: brute
+            n_neighbors: 8
             weights: uniform
     Optuna:
-        cost: 88690.0
+        Cost: 53210.0
         params: *id007
 Logistic_Regression:
-    Best_Cost: 59980.0
+    Best_Cost: 88860.0
     Fittable_Params: &id008
-        penalty: l2
+        penalty: null
     HyperOpt:
-        cost: 59980
+        Cost: 88860
         params:
-            penalty: l2
+            penalty: null
     Optuna:
-        cost: 59980.0
+        Cost: 88860.0
         params: *id008
-MLP_Classifier:
-    Best_Cost: 3330.0
-    Fittable_Params: &id009
-        activation: identity
-        hidden_layer_sizes: &id012 !!python/tuple
-        - 1500
-        - 800
-        - 400
-        - 200
-        learning_rate: constant
-        max_iter: 310
-    HyperOpt:
-        cost: 64100
-        params:
-            activation: identity
-            hidden_layer_sizes: !!python/tuple
-            - 500
-            learning_rate: invscaling
-            max_iter: 194
-    Optuna:
-        cost: 3330.0
-        params: *id009
 Random Forest:
-    Best_Cost: 61550
-    Fittable_Params: &id010
-        class_weight: balanced
-        criterion: entropy
-        max_features: sqrt
-        n_estimators: 140
+    Best_Cost: 50050.0
+    Fittable_Params: &id009
+        class_weight: balanced_subsample
+        criterion: log_loss
+        max_features: log2
+        n_estimators: 124
     HyperOpt:
-        cost: 61550
-        params: *id010
-    Optuna:
-        cost: 62040.0
+        Cost: 50540
         params:
             class_weight: balanced
             criterion: gini
             max_features: log2
-            n_estimators: 110
-SGD_Classifier:
-    Best_Cost: 2880
-    Fittable_Params: &id011
-        loss: perceptron
-    HyperOpt:
-        cost: 2880
-        params: *id011
+            n_estimators: 119
     Optuna:
-        cost: 2920.0
+        Cost: 50050.0
+        params: *id009
+SGD_Classifier:
+    Best_Cost: 3480
+    Fittable_Params: &id010
+        loss: squared_error
+    HyperOpt:
+        Cost: 3480
+        params: *id010
+    Optuna:
+        Cost: 29680.0
         params:
-            loss: perceptron
+            loss: epsilon_insensitive
 Stacked_Classifier:
-    Best_Cost: 2830.0
-    Fittable_Params: &id013
+    Ada_Boost:
+        algorithm: SAMME
+        base_estimator: deprecated
+        estimator: null
+        learning_rate: 1.0
+        n_estimators: 109
+        random_state: null
+    Bagging_Classifier:
+        base_estimator: deprecated
+        bootstrap: true
+        bootstrap_features: false
+        estimator: null
+        max_features: 1.0
+        max_samples: 1.0
+        n_estimators: 65
+        n_jobs: null
+        oob_score: false
+        random_state: null
+        verbose: 0
+        warm_start: false
+    Best_Cost: 43560.0
+    Decision_Tree_Classifier:
+        ccp_alpha: 0.0
+        class_weight: null
+        criterion: gini
+        max_depth: null
+        max_features: null
+        max_leaf_nodes: null
+        min_impurity_decrease: 0.0
+        min_samples_leaf: 1
+        min_samples_split: 2
+        min_weight_fraction_leaf: 0.0
+        random_state: null
+        splitter: best
+    Fittable_Params: &id011
         cv: 5
-        estimators: &id014
+        estimators: &id012
         - !!python/tuple
             - SGD_Classifier
             - !!python/object:sklearn.linear_model._stochastic_gradient.SGDClassifier
@@ -177,7 +188,7 @@ Stacked_Classifier:
                 fit_intercept: true
                 l1_ratio: 0.15
                 learning_rate: optimal
-                loss: perceptron
+                loss: squared_error
                 max_iter: 1000
                 n_iter_no_change: 5
                 n_jobs: null
@@ -188,34 +199,6 @@ Stacked_Classifier:
                 tol: 0.001
                 validation_fraction: 0.1
                 verbose: 0
-                warm_start: false
-        - !!python/tuple
-            - MLP_Classifier
-            - !!python/object:sklearn.neural_network._multilayer_perceptron.MLPClassifier
-                _sklearn_version: 1.3.2
-                activation: identity
-                alpha: 0.0001
-                batch_size: auto
-                beta_1: 0.9
-                beta_2: 0.999
-                early_stopping: false
-                epsilon: 1.0e-08
-                hidden_layer_sizes: *id012
-                learning_rate: constant
-                learning_rate_init: 0.001
-                loss: log_loss
-                max_fun: 15000
-                max_iter: 310
-                momentum: 0.9
-                n_iter_no_change: 10
-                nesterovs_momentum: true
-                power_t: 0.5
-                random_state: null
-                shuffle: true
-                solver: adam
-                tol: 0.0001
-                validation_fraction: 0.1
-                verbose: false
                 warm_start: false
         - !!python/tuple
             - XGB_Classifier
@@ -235,7 +218,7 @@ Stacked_Classifier:
                 grow_policy: null
                 importance_type: null
                 interaction_constraints: null
-                learning_rate: 6.870805859249905
+                learning_rate: 3.6523285164797543
                 max_bin: null
                 max_cat_threshold: null
                 max_cat_to_onehot: null
@@ -246,7 +229,7 @@ Stacked_Classifier:
                 missing: .nan
                 monotone_constraints: null
                 multi_strategy: null
-                n_estimators: 842
+                n_estimators: 829
                 n_jobs: null
                 num_parallel_tree: null
                 objective: binary:logistic
@@ -256,53 +239,9 @@ Stacked_Classifier:
                 sampling_method: null
                 scale_pos_weight: null
                 subsample: null
-                tree_method: approx
+                tree_method: hist
                 validate_parameters: null
                 verbosity: null
-        - !!python/tuple
-            - Grad_Boost
-            - !!python/object:sklearn.ensemble._gb.GradientBoostingClassifier
-                _sklearn_version: 1.3.2
-                alpha: 0.9
-                ccp_alpha: 0.0
-                criterion: friedman_mse
-                init: null
-                learning_rate: 0.1
-                loss: exponential
-                max_depth: 3
-                max_features: log2
-                max_leaf_nodes: null
-                min_impurity_decrease: 0.0
-                min_samples_leaf: 1
-                min_samples_split: 2
-                min_weight_fraction_leaf: 0.0
-                n_estimators: 100
-                n_iter_no_change: null
-                random_state: null
-                subsample: 1.0
-                tol: 0.0001
-                validation_fraction: 0.1
-                verbose: 0
-                warm_start: false
-        - !!python/tuple
-            - Logistic_Regression
-            - !!python/object:sklearn.linear_model._logistic.LogisticRegression
-                C: 1.0
-                _sklearn_version: 1.3.2
-                class_weight: null
-                dual: false
-                fit_intercept: true
-                intercept_scaling: 1
-                l1_ratio: null
-                max_iter: 100
-                multi_class: auto
-                n_jobs: null
-                penalty: l2
-                random_state: null
-                solver: lbfgs
-                tol: 0.0001
-                verbose: 0
-                warm_start: false
         - !!python/tuple
             - Hist_Grad_Boost_Classifier
             - !!python/object:sklearn.ensemble._hist_gradient_boosting.gradient_boosting.HistGradientBoostingClassifier
@@ -316,7 +255,7 @@ Stacked_Classifier:
                 loss: log_loss
                 max_bins: 255
                 max_depth: null
-                max_iter: 125
+                max_iter: 534
                 max_leaf_nodes: 31
                 min_samples_leaf: 20
                 monotonic_cst: null
@@ -328,53 +267,74 @@ Stacked_Classifier:
                 verbose: 0
                 warm_start: false
         - !!python/tuple
-            - Random Forest
-            - !!python/object:sklearn.ensemble._forest.RandomForestClassifier
+            - Bagging_Classifier
+            - !!python/object:sklearn.ensemble._bagging.BaggingClassifier
                 _sklearn_version: 1.3.2
                 base_estimator: deprecated
                 bootstrap: true
-                ccp_alpha: 0.0
-                class_weight: balanced
-                criterion: entropy
-                estimator: !!python/object:sklearn.tree._classes.DecisionTreeClassifier
-                    _sklearn_version: 1.3.2
-                    ccp_alpha: 0.0
-                    class_weight: null
-                    criterion: gini
-                    max_depth: null
-                    max_features: null
-                    max_leaf_nodes: null
-                    min_impurity_decrease: 0.0
-                    min_samples_leaf: 1
-                    min_samples_split: 2
-                    min_weight_fraction_leaf: 0.0
-                    random_state: null
-                    splitter: best
-                estimator_params: !!python/tuple
-                - criterion
-                - max_depth
-                - min_samples_split
-                - min_samples_leaf
-                - min_weight_fraction_leaf
-                - max_features
-                - max_leaf_nodes
-                - min_impurity_decrease
-                - random_state
-                - ccp_alpha
-                max_depth: null
-                max_features: sqrt
-                max_leaf_nodes: null
-                max_samples: null
-                min_impurity_decrease: 0.0
-                min_samples_leaf: 1
-                min_samples_split: 2
-                min_weight_fraction_leaf: 0.0
-                n_estimators: 140
+                bootstrap_features: false
+                estimator: null
+                estimator_params: !!python/tuple []
+                max_features: 1.0
+                max_samples: 1.0
+                n_estimators: 65
                 n_jobs: null
                 oob_score: false
                 random_state: null
                 verbose: 0
                 warm_start: false
+        - !!python/tuple
+            - Ada_Boost
+            - !!python/object:sklearn.ensemble._weight_boosting.AdaBoostClassifier
+                _sklearn_version: 1.3.2
+                algorithm: SAMME
+                base_estimator: deprecated
+                estimator: null
+                estimator_params: !!python/tuple []
+                learning_rate: 1.0
+                n_estimators: 109
+                random_state: null
+        - !!python/tuple
+            - Grad_Boost
+            - !!python/object:sklearn.ensemble._gb.GradientBoostingClassifier
+                _sklearn_version: 1.3.2
+                alpha: 0.9
+                ccp_alpha: 0.0
+                criterion: squared_error
+                init: null
+                learning_rate: 0.1
+                loss: log_loss
+                max_depth: 3
+                max_features: null
+                max_leaf_nodes: null
+                min_impurity_decrease: 0.0
+                min_samples_leaf: 1
+                min_samples_split: 2
+                min_weight_fraction_leaf: 0.0
+                n_estimators: 134
+                n_iter_no_change: null
+                random_state: null
+                subsample: 1.0
+                tol: 0.0001
+                validation_fraction: 0.1
+                verbose: 0
+                warm_start: false
+        - !!python/tuple
+            - Decision_Tree_Classifier
+            - !!python/object:sklearn.tree._classes.DecisionTreeClassifier
+                _sklearn_version: 1.3.2
+                ccp_alpha: 0.0
+                class_weight: null
+                criterion: gini
+                max_depth: null
+                max_features: null
+                max_leaf_nodes: null
+                min_impurity_decrease: 0.0
+                min_samples_leaf: 1
+                min_samples_split: 2
+                min_weight_fraction_leaf: 0.0
+                random_state: null
+                splitter: best
         final_estimator: !!python/object:sklearn.linear_model._stochastic_gradient.SGDClassifier
             C: 1.0
             _sklearn_version: 1.3.2
@@ -387,7 +347,7 @@ Stacked_Classifier:
             fit_intercept: true
             l1_ratio: 0.15
             learning_rate: optimal
-            loss: perceptron
+            loss: squared_error
             max_iter: 1000
             n_iter_no_change: 5
             n_jobs: null
@@ -400,22 +360,22 @@ Stacked_Classifier:
             verbose: 0
             warm_start: false
         n_jobs: -1
-        passthrough: true
+        passthrough: false
         stack_method: predict
     Grad_Boost:
         ccp_alpha: 0.0
-        criterion: friedman_mse
+        criterion: squared_error
         init: null
         learning_rate: 0.1
-        loss: exponential
+        loss: log_loss
         max_depth: 3
-        max_features: log2
+        max_features: null
         max_leaf_nodes: null
         min_impurity_decrease: 0.0
         min_samples_leaf: 1
         min_samples_split: 2
         min_weight_fraction_leaf: 0.0
-        n_estimators: 100
+        n_estimators: 134
         n_iter_no_change: null
         random_state: null
         subsample: 1.0
@@ -433,7 +393,7 @@ Stacked_Classifier:
         loss: log_loss
         max_bins: 255
         max_depth: null
-        max_iter: 125
+        max_iter: 534
         max_leaf_nodes: 31
         min_samples_leaf: 20
         monotonic_cst: null
@@ -445,72 +405,13 @@ Stacked_Classifier:
         verbose: 0
         warm_start: false
     HyperOpt:
-        cost: 3000
+        Cost: 148660
         params:
             passthrough: true
             stack_method: auto
-    Logistic_Regression:
-        C: 1.0
-        class_weight: null
-        dual: false
-        fit_intercept: true
-        intercept_scaling: 1
-        l1_ratio: null
-        max_iter: 100
-        multi_class: auto
-        n_jobs: null
-        penalty: l2
-        random_state: null
-        solver: lbfgs
-        tol: 0.0001
-        verbose: 0
-        warm_start: false
-    MLP_Classifier:
-        activation: identity
-        alpha: 0.0001
-        batch_size: auto
-        beta_1: 0.9
-        beta_2: 0.999
-        early_stopping: false
-        epsilon: 1.0e-08
-        hidden_layer_sizes: *id012
-        learning_rate: constant
-        learning_rate_init: 0.001
-        max_fun: 15000
-        max_iter: 310
-        momentum: 0.9
-        n_iter_no_change: 10
-        nesterovs_momentum: true
-        power_t: 0.5
-        random_state: null
-        shuffle: true
-        solver: adam
-        tol: 0.0001
-        validation_fraction: 0.1
-        verbose: false
-        warm_start: false
     Optuna:
-        cost: 2830.0
-        params: *id013
-    Random Forest:
-        bootstrap: true
-        ccp_alpha: 0.0
-        class_weight: balanced
-        criterion: entropy
-        max_depth: null
-        max_features: sqrt
-        max_leaf_nodes: null
-        max_samples: null
-        min_impurity_decrease: 0.0
-        min_samples_leaf: 1
-        min_samples_split: 2
-        min_weight_fraction_leaf: 0.0
-        n_estimators: 140
-        n_jobs: null
-        oob_score: false
-        random_state: null
-        verbose: 0
-        warm_start: false
+        Cost: 43560.0
+        params: *id011
     SGD_Classifier:
         alpha: 0.0001
         average: false
@@ -521,7 +422,7 @@ Stacked_Classifier:
         fit_intercept: true
         l1_ratio: 0.15
         learning_rate: optimal
-        loss: perceptron
+        loss: squared_error
         max_iter: 1000
         n_iter_no_change: 5
         n_jobs: null
@@ -549,7 +450,7 @@ Stacked_Classifier:
         grow_policy: null
         importance_type: null
         interaction_constraints: null
-        learning_rate: 6.870805859249905
+        learning_rate: 3.6523285164797543
         max_bin: null
         max_cat_threshold: null
         max_cat_to_onehot: null
@@ -560,7 +461,7 @@ Stacked_Classifier:
         missing: .nan
         monotone_constraints: null
         multi_strategy: null
-        n_estimators: 842
+        n_estimators: 829
         n_jobs: null
         num_parallel_tree: null
         objective: binary:logistic
@@ -570,30 +471,30 @@ Stacked_Classifier:
         sampling_method: null
         scale_pos_weight: null
         subsample: null
-        tree_method: approx
+        tree_method: hist
         validate_parameters: null
         verbosity: null
 Voting_Classifier:
-    Best_Cost: 1970.0
+    Best_Cost: 35550.0
     Fittable_Params:
-        estimators: *id014
+        estimators: *id012
         n_jobs: -1
         voting: hard
         weights: null
 XGB_Classifier:
-    Best_Cost: 4880.0
-    Fittable_Params: &id015
+    Best_Cost: 8070.0
+    Fittable_Params: &id013
         booster: gbtree
-        learning_rate: 6.870805859249905
-        n_estimators: 842
-        tree_method: approx
+        learning_rate: 3.6523285164797543
+        n_estimators: 829
+        tree_method: hist
     HyperOpt:
-        cost: 4880
+        Cost: 19450
         params:
             booster: gbtree
-            learning_rate: 7.554873244259527
-            n_estimators: 129
-            tree_method: exact
+            learning_rate: 7.3257095633559
+            n_estimators: 130
+            tree_method: approx
     Optuna:
-        cost: 4880.0
-        params: *id015
+        Cost: 8070.0
+        params: *id013

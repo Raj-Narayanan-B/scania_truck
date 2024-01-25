@@ -16,5 +16,8 @@ Hist_Grad_Boost_Classifier:
 Decision_Tree_Classifier:
 XGB_Classifier:
 KNN_Classifier:
-MLP_Classifier:
 Stacked_Classifier:
+
+export MLFLOW_TRACKING_URI=https://dagshub.com/Raj-Narayanan-B/StudentMLProjectRegression.mlflow \
+export MLFLOW_TRACKING_USERNAME=Raj-Narayanan-B \
+export MLFLOW_TRACKING_PASSWORD=8af4cc66be8aec751397fd525e47ae395fa67442

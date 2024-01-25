@@ -49,11 +49,11 @@ optuna:
     weights: trial.suggest_categorical('weights', ['uniform', 'distance'])
     algorithm: trial.suggest_categorical('algorithm', ['auto', 'ball_tree', 'kd_tree', 'brute'])
 
-  MLP_Classifier:
-    hidden_layer_sizes: trial.suggest_categorical('hidden_layer_sizes', [(500,), (500, 300, 200, 150,), (700, 500, 300, 100, ), (1500, 800, 400, 200, )])
-    activation: trial.suggest_categorical('activation', ['identity', 'logistic', 'tanh' , 'relu'])
-    learning_rate: trial.suggest_categorical('learning_rate', ['constant', 'invscaling', 'adaptive'])
-    max_iter: trial.suggest_int('max_iter', 100, 800)
+  # MLP_Classifier:
+  #   hidden_layer_sizes: trial.suggest_categorical('hidden_layer_sizes', [(500,), (500, 300, 200, 150,), (700, 500, 300, 100, ), (1500, 800, 400, 200, )])
+  #   activation: trial.suggest_categorical('activation', ['identity', 'logistic', 'tanh' , 'relu'])
+  #   learning_rate: trial.suggest_categorical('learning_rate', ['constant', 'invscaling', 'adaptive'])
+  #   max_iter: trial.suggest_int('max_iter', 100, 800)
 
   Stacked_Classifier:
     stack_method: trial.suggest_categorical('stack_method', ['auto', 'predict'])
@@ -110,11 +110,11 @@ hyperopt:
     weights: hp.choice('weights', ['uniform', 'distance'])
     algorithm: hp.choice('algorithm', ['auto', 'ball_tree', 'kd_tree', 'brute'])
 
-  MLP_Classifier:
-    hidden_layer_sizes: hp.choice('hidden_layer_sizes', [(500,), (500, 300, 200, 150,), (700, 500, 300, 100, ), (1500, 800, 400, 200, )])
-    activation: hp.choice('activation', ['identity', 'logistic', 'tanh' , 'relu'])
-    learning_rate: hp.choice('learning_rate', ['constant', 'invscaling', 'adaptive'])
-    max_iter: scope.int(hp.quniform('max_iter', 100, 800, 1))
+  # MLP_Classifier:
+  #   hidden_layer_sizes: hp.choice('hidden_layer_sizes', [(500,), (500, 300, 200, 150,), (700, 500, 300, 100, ), (1500, 800, 400, 200, )])
+  #   activation: hp.choice('activation', ['identity', 'logistic', 'tanh' , 'relu'])
+  #   learning_rate: hp.choice('learning_rate', ['constant', 'invscaling', 'adaptive'])
+  #   max_iter: scope.int(hp.quniform('max_iter', 100, 800, 1))
 
   Stacked_Classifier:
     stack_method: hp.choice('stack_method', ['auto', 'predict'])

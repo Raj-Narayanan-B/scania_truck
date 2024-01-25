@@ -9,8 +9,10 @@ joblib
 python-box
 flask
 mlflow
+dagshub
 dvc
 dvc[gdrive]
+dvc[s3]
 plotly
 nbformat
 ensure
