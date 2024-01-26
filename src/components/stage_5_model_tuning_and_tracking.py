@@ -25,7 +25,6 @@ from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 # from catboost import CatBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.neural_network import MLPClassifier
 
 import mlflow.pyfunc
 from mlflow.client import MlflowClient
@@ -51,11 +50,7 @@ class model_tuning_tracking_component:
         target = list(schema.Target.keys())[0]
         size = 1500
         logger.info("loading training and testing datasets")
-        
-        # if os.path.exists(self.stage_2_config.train_data_path) & os.path.exists(self.stage_2_config.test_data_path):
-        #     train_df_shape = pd.read_csv(self.stage_2_config.train_data_path).shape
-        #     test_df_shape = pd.read_csv(self.stage_2_config.test_data_path).shape
-        #     if train_df_shape == size & test_df_shape == size
+
         if os.path.exists(self.preprocessor_config.preprocessor_path):
             os.remove(self.preprocessor_config.preprocessor_path)
 
@@ -64,7 +59,8 @@ class model_tuning_tracking_component:
         pre_train_df, pre_test_df = stage_3_data_split_obj.data_splitting(size)
 
         stage_4_final_processing_obj = stage_4_final_processing_component(data_split_conf = self.split_config,
-                                                                          stage_2_processor_conf = self.stage_2_config)
+                                                                          stage_2_processor_conf = self.stage_2_config,
+                                                                          preprocessor_conf = self.preprocessor_config)
         train_df, test_df = stage_4_final_processing_obj.final_processing(pre_train_df, pre_test_df)
         
         # train_df = pd.read_csv(self.stage_2_config.train_data_path)
@@ -83,16 +79,16 @@ class model_tuning_tracking_component:
         y_test = test_df[target]
 
         models = {'Logistic_Regression': LogisticRegression, 
-                  'SGD_Classifier': SGDClassifier,
-                  'Random Forest': RandomForestClassifier, 
-                  'Ada_Boost': AdaBoostClassifier, 
-                  'Grad_Boost': GradientBoostingClassifier, 
-                  'Bagging_Classifier': BaggingClassifier, 
-                  'ExtraTreesClassifier': ExtraTreesClassifier, 
-                  'Hist_Grad_Boost_Classifier': HistGradientBoostingClassifier, 
-                  'Decision_Tree_Classifier': DecisionTreeClassifier,
-                  'XGB_Classifier': XGBClassifier,
-                  'KNN_Classifier': KNeighborsClassifier,
+                #   'SGD_Classifier': SGDClassifier,
+                #   'Random Forest': RandomForestClassifier, 
+                #   'Ada_Boost': AdaBoostClassifier, 
+                #   'Grad_Boost': GradientBoostingClassifier, 
+                #   'Bagging_Classifier': BaggingClassifier, 
+                #   'ExtraTreesClassifier': ExtraTreesClassifier, 
+                #   'Hist_Grad_Boost_Classifier': HistGradientBoostingClassifier, 
+                #   'Decision_Tree_Classifier': DecisionTreeClassifier,
+                #   'XGB_Classifier': XGBClassifier,
+                #   'KNN_Classifier': KNeighborsClassifier,
                   }
         logger.info("Commencing models hyper-parameter tuning")
         report = {}
@@ -111,9 +107,6 @@ class model_tuning_tracking_component:
             best_model_so_far_ = best_model_so_far
             print(f"Model: {model_key}\nReport:\n{tuning_report}\n")
             print("Experiment_ IDs: ",exp_id_list)
-            # costs = [value['Best_Cost'] for value in report.values()]
-            # min_cost = min(costs)
-            # best_model_so_far_ = [(i, min_cost, report[i]['Best_Params']) for i in report.keys() if min_cost == report[i]['Best_Cost']]
 
             print(f"\nBest model so far: {best_model_so_far_[0]}\n")
 
@@ -140,58 +133,16 @@ class model_tuning_tracking_component:
         models['Stacked_Classifier'] = StackingClassifier
         exp_id_list.append(exp_id_stacking_clf[0])
 
-        # stacked_classifier = StackingClassifier(estimators = best_estimators,
-        #                                 final_estimator =  models[best_model_so_far_[0][0]](**best_model_so_far_[0][2]),
-        #                                 cv = 5,
-        #                                 n_jobs = -1,
-        #                                 passthrough = False,
-        #                                 verbose = 3)
-        # tuned_params, stacked_clf_report, best_model_so_far = parameter_tuning(model_class = stacked_classifier,
-        #                                                             model_name = 'Stacked_Classifier',
-        #                                                             x_train = x_train,
-        #                                                             x_test = x_test,
-        #                                                             y_train = y_train,
-        #                                                             y_test = y_test,
-        #                                                             report_ = report)
-        # models_names_in_stacking_classifier, models_params_in_stacking_classifier = zip(*best_estimators)
-        # report['Stacked_Classifier'] = {}
-        # sc_params = {}
-        # sc_params['estimators'] = best_estimators
-        # sc_params['final_estimator'] = stacked_classifier.get_params()['final_estimator']
-        # sc_params['cv'] = stacked_classifier.get_params()['cv']
-        # sc_params['n_jobs'] = stacked_classifier.get_params()['n_jobs']
 
-        # for i in range(len(models_names_in_stacking_classifier)):
-        #     report['Stacked_Classifier'][models_names_in_stacking_classifier[i]] = models_params_in_stacking_classifier[i].get_params()
-
-        # report['Stacked_Classifier']['Best_Cost'] = tuned_params['Best_Cost']
-
-        # for i in sc_params.keys():
-        #     tuned_params['Fittable_Params'][i] = sc_params[i]
-
-        # report['Stacked_Classifier']['Optuna'] = tuned_params['Optuna']
-        # report['Stacked_Classifier']['HyperOpt'] = tuned_params['HyperOpt']
-        # report['Stacked_Classifier']['Fittable_Params'] = tuned_params['Fittable_Params']
-
-        # models['Stacked_Classifier'] = StackingClassifier(**report['Stacked_Classifier']['Fittable_Params'])
-        exp_id_voting_clf = mlflow.create_experiment(name = f"52_Voting_Classifier_52",
-                                                     tags = {"metrics": "['Balanced_Accuracy_Score', 'F1_Score', 'Accuracy_Score', 'Cost']"})
-        with mlflow.start_run(experiment_id = exp_id_voting_clf,
-                              run_name = f"Voting_Classifier",
-                              tags = {"run_type": "parent"}) as voting_clf_run:
-            voting_clf_run_id = voting_clf_run.info.run_id
-            vc_report = voting_clf_trainer(best_estimators = best_estimators,
-                                        x_train = x_train,
-                                        y_train = y_train,
-                                        x_test = x_test,
-                                        y_test = y_test,
-                                        report = report,
-                                        run_id = voting_clf_run_id,
-                                        exp_id = exp_id_voting_clf)
-            
-            report['Voting_Classifier'] = vc_report['Voting_Classifier']
-            models['Voting_Classifier'] = VotingClassifier
-            exp_id_list.append(exp_id_voting_clf)
+        vc_report,exp_id_voting_clf = voting_clf_trainer(best_estimators = best_estimators,
+                                    x_train = x_train,
+                                    y_train = y_train,
+                                    x_test = x_test,
+                                    y_test = y_test,
+                                    report = report)
+        report['Voting_Classifier'] = vc_report['Voting_Classifier']
+        models['Voting_Classifier'] = VotingClassifier
+        exp_id_list.append(exp_id_voting_clf)
 
         mlflow_logger(exp_id = exp_id_list,
                         should_register_champion_model=True,
@@ -203,44 +154,18 @@ class model_tuning_tracking_component:
 
         source = mlflow.search_registered_models(filter_string = f"tags.model_type ilike 'champion'")[0].latest_versions[0].source
         pyfunc_model = mlflow.pyfunc.load_model(model_uri = source,
-                                 dst_path = "artifacts\model")
-        model = mlflow.pyfunc.load_model(f'file:artifacts\model\{pyfunc_model.metadata.artifact_path}')
+                                 dst_path = self.model_config.hp_model_path)
+        
+        model = mlflow.pyfunc.load_model(f'{self.model_config.hp_model_path}/{pyfunc_model.metadata.artifact_path}')
+
+        artifact_path_dict = {'artifact_path_name' : pyfunc_model.metadata.artifact_path}
+
+        save_yaml(file = artifact_path_dict, filepath = f"{self.model_config.root_dir}/artifact_path.yaml")
+        # save_yaml(file = model.metadata.artifact_path, filepath = self.model_config.root_dir)
 
         y_pred = model.predict(data = x_test)
-
-        eval_metrics(y_test, y_pred)
-
-        # cost = model_trainer(x_train = x_train,
-        #                     y_train = y_train,
-        #                     x_test = x_test,
-        #                     y_test = y_test,
-        #                     models = models,
-        #                     best_model_details = best_model_sofar)
         
         print(f"\nFinal metrics after Stacking and Voting Classifiers: {eval_metrics(y_test, y_pred)}\n")
-        
-        # voting_classifier_ = VotingClassifier(estimators = best_estimators,
-        #                                             voting = "hard",
-        #                                             weights = None,
-        #                                             n_jobs = -1,
-        #                                             verbose = True)
-        # voting_classifier_.fit(x_train,y_train)
-        # y_pred = voting_classifier_.predict(x_test)
-        # cost = eval_metrics(y_true = y_test, y_pred = y_pred)
-        # print(f"\nVoting Classifier Cost: {cost} \n")
-        
-        # vc_params = {}
-        # vc_params['estimators'] = best_estimators
-        # vc_params['voting'] = voting_classifier_.get_params()['voting']
-        # vc_params['weights'] = voting_classifier_.get_params()['weights']
-        # vc_params['n_jobs'] = voting_classifier_.get_params()['n_jobs']
-
-        # report['Voting_Classifier'] = {}
-        # report['Voting_Classifier']['Best_Cost'] = cost
-
-        # report['Voting_Classifier']['Fittable_Params'] = vc_params
-        # models['Voting_Classifier'] = VotingClassifier(**report['Voting_Classifier']['Fittable_Params'])
-
         
         best_model_sofar, best_models_with_params, best_estimators = best_model_finder(report = report, models = models)
 
@@ -274,3 +199,12 @@ obj = model_tuning_tracking_component(stage_2_conf = stage_2_obj,
                                       data_split_conf = data_split_obj,
                                       stage1_processor_conf = stage_1_obj)
 obj.models_tuning()
+
+
+
+        # exp_id_voting_clf = mlflow.create_experiment(name = f"54_Voting_Classifier_54",
+        #                                              tags = {"metrics": "['Balanced_Accuracy_Score', 'F1_Score', 'Accuracy_Score', 'Cost']"})
+        # with mlflow.start_run(experiment_id = exp_id_voting_clf,
+        #                       run_name = f"Voting_Classifier",
+        #                       tags = {"run_type": "parent"}) as voting_clf_run:
+        #     voting_clf_run_id = voting_clf_run.info.run_id

@@ -14,21 +14,23 @@ class data_splitting_component:
     def data_splitting(self, *args):
         if args:
             self.size = args[0]
+            print ("Size: ",self.size)    
+            df = pd.read_csv(self.stage1_processor_config.train_data_path).iloc[:self.size,:]
+            train_data_training_set,train_data_testing_set = train_test_splitter(df)
+            print ("Pre_train_data shape: ",train_data_training_set.shape,
+                "\nPre_test_data shape: ",train_data_testing_set.shape)
+            return (train_data_training_set,train_data_testing_set)
         else:
             self.size = None    
-        print ("Size: ",self.size)    
+            print ("Size: ",self.size)    
+            df = pd.read_csv(self.stage1_processor_config.train_data_path).iloc[:self.size,:]
+            train_data_training_set,train_data_testing_set = train_test_splitter(df)
+            print ("Pre_train_data shape: ",train_data_training_set.shape,
+                "\nPre_test_data shape: ",train_data_testing_set.shape)
 
-        df = pd.read_csv(self.stage1_processor_config.train_data_path).iloc[:self.size,:]
-        
-        train_data_training_set,train_data_testing_set = train_test_splitter(df)
-
-        print ("Pre_train_data shape: ",train_data_training_set.shape,
-               "Pre_test_data shape: ",train_data_testing_set.shape)
-        
-        if not args:
             train_data_training_set.to_csv(self.split_config.train_path,index=False)
             train_data_testing_set.to_csv(self.split_config.test_path,index=False)
-        else:
+
             return (train_data_training_set,train_data_testing_set)
 
 # obj = ConfigurationManager()

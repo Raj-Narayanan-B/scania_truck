@@ -73,6 +73,7 @@ class DataSplitConf:
 class ModelTrainerConf:
     root_dir: Path
     model_path: str
+    hp_model_path: Path
 
 @dataclass(frozen=True)
 class ModelMetricsConf:

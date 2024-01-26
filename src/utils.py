@@ -287,7 +287,7 @@ def parameter_tuning(model_class : ML_Model,
     tags = {"tuner_1": "optuna",
             "tuner_2": "hyperopt",
             "metrics": "['Balanced_Accuracy_Score', 'F1_Score', 'Accuracy_Score', 'Cost']"} 
-    exp_id = client.create_experiment(name = f"52_{model_name}_52", tags = tags) 
+    exp_id = client.create_experiment(name = f"61_{model_name}_61", tags = tags) 
 
 ####################################################### OPTUNA #######################################################
     with mlflow.start_run(experiment_id = exp_id,
@@ -503,41 +503,48 @@ def stacking_clf_trainer(best_estimators:list[tuple], models: dict, best_model_s
 
 def voting_clf_trainer(best_estimators:list[tuple],
                        x_train: pd.DataFrame, y_train: pd.DataFrame, x_test: pd.DataFrame, y_test: pd.DataFrame,
-                       report: dict,  run_id, exp_id) -> dict:
-    voting_classifier_ = VotingClassifier(estimators = best_estimators,
-                                                    voting = "hard",
-                                                    weights = None,
-                                                    n_jobs = -1,
-                                                    verbose = True)
-    voting_classifier_.fit(x_train,y_train)
-    y_pred = voting_classifier_.predict(x_test)
-    cost = eval_metrics(y_true = y_test, y_pred = y_pred)['Cost']
-    print(f"\nVoting Classifier Cost: {cost} \n")
-    data = (x_train, y_test, y_pred)
-    mlflow_logger(data = data,
-                  model = voting_classifier_,
-                  model_name = 'Voting_Classifier',
-                  should_log_parent_model = False,
-                  artifact_path = f'voting_classifier')
-    
-    mlflow_logger(data = data,
-                  model_name = 'Voting_Classifier',
-                  exp_id = exp_id,
-                  registered_model_name = f"Challenger_Voting_Classifier",
-                  artifact_path = None)
-    
-    vc_params = {}
-    vc_params['estimators'] = best_estimators
-    vc_params['voting'] = voting_classifier_.get_params()['voting']
-    vc_params['weights'] = voting_classifier_.get_params()['weights']
-    vc_params['n_jobs'] = voting_classifier_.get_params()['n_jobs']
+                       report: dict):
+    exp_id_voting_clf = mlflow.create_experiment(name = f"61_Voting_Classifier_61",
+                                                     tags = {"metrics": "['Balanced_Accuracy_Score', 'F1_Score', 'Accuracy_Score', 'Cost']"})
+    with mlflow.start_run(experiment_id = exp_id_voting_clf,
+                            run_name = f"Voting_Classifier",
+                            tags = {"run_type": "parent"}) as voting_clf_run:
+        # voting_clf_run_id = voting_clf_run.info.run_id
+        voting_classifier_ = VotingClassifier(estimators = best_estimators,
+                                                        voting = "hard",
+                                                        weights = None,
+                                                        n_jobs = -1,
+                                                        verbose = True)
+        voting_classifier_.fit(x_train,y_train)
+        y_pred = voting_classifier_.predict(x_test)
+        cost = eval_metrics(y_true = y_test, y_pred = y_pred)['Cost']
+        print(f"\nVoting Classifier Cost: {cost} \n")
+        data = (x_train, y_test, y_pred)
+        
+        mlflow_logger(data = data,
+                    model = voting_classifier_,
+                    model_name = 'Voting_Classifier',
+                    should_log_parent_model = False,
+                    artifact_path = f'voting_classifier')
+        
+        mlflow_logger(data = data,
+                    model_name = 'Voting_Classifier',
+                    exp_id = exp_id_voting_clf,
+                    registered_model_name = f"Challenger_Voting_Classifier",
+                    artifact_path = None)
+        
+        vc_params = {}
+        vc_params['estimators'] = best_estimators
+        vc_params['voting'] = voting_classifier_.get_params()['voting']
+        vc_params['weights'] = voting_classifier_.get_params()['weights']
+        vc_params['n_jobs'] = voting_classifier_.get_params()['n_jobs']
 
-    report['Voting_Classifier'] = {}
-    report['Voting_Classifier']['Best_Cost'] = cost
+        report['Voting_Classifier'] = {}
+        report['Voting_Classifier']['Best_Cost'] = cost
 
-    report['Voting_Classifier']['Fittable_Params'] = vc_params
+        report['Voting_Classifier']['Fittable_Params'] = vc_params
 
-    return report
+    return report,exp_id_voting_clf
 
 def model_trainer(x_train : pd.DataFrame, y_train : pd.DataFrame, x_test : pd.DataFrame, y_test : pd.DataFrame,
                   model_: ML_Model = None, 
@@ -715,12 +722,12 @@ def mlflow_logger(artifact_path: str, data = None, model = None, model_name: str
 
             else:
                 clf_list = []
-                for i in range(len(best_model['estimators'])):
-                    clf_list.append((best_model['estimators'][i][0],best_model['estimators'][i][1].__class__()))
+                for i in range(len(best_model.get_params()['estimators'])):
+                    clf_list.append((best_model.get_params()['estimators'][i][0],best_model.get_params()['estimators'][i][1].__class__()))
                 
                 estimators_params = {}
-                for i in range(len(best_model['estimators'])):
-                        estimators_params[best_model['estimators'][i][0]] = best_model['estimators'][i][1].get_params()
+                for i in range(len(best_model.get_params()['estimators'])):
+                        estimators_params[best_model.get_params()['estimators'][i][0]] = best_model.get_params()['estimators'][i][1].get_params()
                 for i in estimators_params:
                         estimators_params[i] = {key:value for key,value in estimators_params[i].items() if value is not None}
 
@@ -815,12 +822,12 @@ def mlflow_logger(artifact_path: str, data = None, model = None, model_name: str
 
             else:
                 clf_list = []
-                for i in range(len(model['estimators'])):
-                    clf_list.append((model['estimators'][i][0],model['estimators'][i][1].__class__()))
+                for i in range(len(model.get_params()['estimators'])):
+                    clf_list.append((model.get_params()['estimators'][i][0],model.get_params()['estimators'][i][1].__class__()))
                 
                 estimators_params = {}
-                for i in range(len(model['estimators'])):
-                        estimators_params[model['estimators'][i][0]] = model['estimators'][i][1].get_params()
+                for i in range(len(model.get_params()['estimators'])):
+                        estimators_params[model.get_params()['estimators'][i][0]] = model.get_params()['estimators'][i][1].get_params()
                 for i in estimators_params:
                         estimators_params[i] = {key:value for key,value in estimators_params[i].items() if value is not None}
 

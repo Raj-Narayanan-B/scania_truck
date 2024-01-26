@@ -116,7 +116,8 @@ class ConfigurationManager:
         config = self.config_path.model_trainer
         model_config = ModelTrainerConf(
             root_dir = config.root_dir,
-            model_path = config.model_path
+            model_path = config.model_path,
+            hp_model_path = config.hp_model_path_
         )
         return model_config
 
