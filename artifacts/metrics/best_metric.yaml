@@ -1,5 +1,5 @@
 Stacked_Classifier:
-    Best_Cost: 84910
+    Best_Cost: 126870.0
     Fittable_Params: &id001
         cv: 5
         estimators:
@@ -40,11 +40,13 @@ Stacked_Classifier:
             verbose: 0
             warm_start: false
         n_jobs: -1
-        passthrough: true
-        stack_method: auto
+        passthrough: false
+        stack_method: predict
     HyperOpt:
-        Cost: 84910
-        params: *id001
+        Cost: 126870
+        params:
+            passthrough: false
+            stack_method: predict
     Logistic_Regression:
         C: 1.0
         class_weight: null
@@ -62,7 +64,5 @@ Stacked_Classifier:
         verbose: 0
         warm_start: false
     Optuna:
-        Cost: 85930.0
-        params:
-            passthrough: true
-            stack_method: predict
+        Cost: 126870.0
+        params: *id001

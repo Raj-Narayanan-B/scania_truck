@@ -287,7 +287,7 @@ def parameter_tuning(model_class : ML_Model,
     tags = {"tuner_1": "optuna",
             "tuner_2": "hyperopt",
             "metrics": "['Balanced_Accuracy_Score', 'F1_Score', 'Accuracy_Score', 'Cost']"} 
-    exp_id = client.create_experiment(name = f"61_{model_name}_61", tags = tags) 
+    exp_id = client.create_experiment(name = f"63_{model_name}_63", tags = tags) 
 
 ####################################################### OPTUNA #######################################################
     with mlflow.start_run(experiment_id = exp_id,
@@ -504,7 +504,7 @@ def stacking_clf_trainer(best_estimators:list[tuple], models: dict, best_model_s
 def voting_clf_trainer(best_estimators:list[tuple],
                        x_train: pd.DataFrame, y_train: pd.DataFrame, x_test: pd.DataFrame, y_test: pd.DataFrame,
                        report: dict):
-    exp_id_voting_clf = mlflow.create_experiment(name = f"61_Voting_Classifier_61",
+    exp_id_voting_clf = mlflow.create_experiment(name = f"63_Voting_Classifier_63",
                                                      tags = {"metrics": "['Balanced_Accuracy_Score', 'F1_Score', 'Accuracy_Score', 'Cost']"})
     with mlflow.start_run(experiment_id = exp_id_voting_clf,
                             run_name = f"Voting_Classifier",

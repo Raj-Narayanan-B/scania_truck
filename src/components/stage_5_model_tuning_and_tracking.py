@@ -48,7 +48,7 @@ class model_tuning_tracking_component:
     def models_tuning (self):
         schema = load_yaml(SCHEMA_PATH)
         target = list(schema.Target.keys())[0]
-        size = 1500
+        size = 20000
         logger.info("loading training and testing datasets")
 
         if os.path.exists(self.preprocessor_config.preprocessor_path):
@@ -79,16 +79,16 @@ class model_tuning_tracking_component:
         y_test = test_df[target]
 
         models = {'Logistic_Regression': LogisticRegression, 
-                #   'SGD_Classifier': SGDClassifier,
-                #   'Random Forest': RandomForestClassifier, 
-                #   'Ada_Boost': AdaBoostClassifier, 
-                #   'Grad_Boost': GradientBoostingClassifier, 
-                #   'Bagging_Classifier': BaggingClassifier, 
-                #   'ExtraTreesClassifier': ExtraTreesClassifier, 
-                #   'Hist_Grad_Boost_Classifier': HistGradientBoostingClassifier, 
-                #   'Decision_Tree_Classifier': DecisionTreeClassifier,
-                #   'XGB_Classifier': XGBClassifier,
-                #   'KNN_Classifier': KNeighborsClassifier,
+                  'SGD_Classifier': SGDClassifier,
+                  'Random Forest': RandomForestClassifier, 
+                  'Ada_Boost': AdaBoostClassifier, 
+                  'Grad_Boost': GradientBoostingClassifier, 
+                  'Bagging_Classifier': BaggingClassifier, 
+                  'ExtraTreesClassifier': ExtraTreesClassifier, 
+                  'Hist_Grad_Boost_Classifier': HistGradientBoostingClassifier, 
+                  'Decision_Tree_Classifier': DecisionTreeClassifier,
+                  'XGB_Classifier': XGBClassifier,
+                  'KNN_Classifier': KNeighborsClassifier,
                   }
         logger.info("Commencing models hyper-parameter tuning")
         report = {}
@@ -151,7 +151,10 @@ class model_tuning_tracking_component:
         best_model_sofar,best_models_with_params, best_estimators = best_model_finder(report = report, models = models)
 
         print(f"\nBest model so far: {best_model_sofar[0]}\n")
-
+        if os.path.exists(self.model_config.hp_model_path):
+            pass
+        else:
+            os.makedirs(self.model_config.hp_model_path, exist_ok = True)
         source = mlflow.search_registered_models(filter_string = f"tags.model_type ilike 'champion'")[0].latest_versions[0].source
         pyfunc_model = mlflow.pyfunc.load_model(model_uri = source,
                                  dst_path = self.model_config.hp_model_path)

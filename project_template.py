@@ -19,7 +19,10 @@ folders = [
     os.path.join('artifacts/data/processed','stage_1_processing'),
     os.path.join('artifacts/data/processed','stage_2_processing'),
     os.path.join('artifacts/data','train_test'),
+
     os.path.join('artifacts','model'),
+    os.path.join('artifacts/model','hp_tuned_model'),
+
     os.path.join('artifacts','metrics'),
     os.path.join('artifacts','preprocessor'),
 

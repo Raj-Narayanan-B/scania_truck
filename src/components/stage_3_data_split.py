@@ -22,7 +22,7 @@ class data_splitting_component:
             return (train_data_training_set,train_data_testing_set)
         else:
             self.size = None    
-            print ("Size: ",self.size)    
+            print ("Size: Full")    
             df = pd.read_csv(self.stage1_processor_config.train_data_path).iloc[:self.size,:]
             train_data_training_set,train_data_testing_set = train_test_splitter(df)
             print ("Pre_train_data shape: ",train_data_training_set.shape,
