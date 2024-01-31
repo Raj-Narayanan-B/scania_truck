@@ -1,0 +1,13 @@
+number,value,datetime_start,datetime_complete,duration,params_criterion,params_max_features,params_splitter,state,Model_name,params_booster,params_learning_rate,params_n_estimators,params_tree_method,params_algorithm,params_n_neighbors,params_weights,params_boosting_type,params_class_weight,params_n_jobs
+0,0.9738199899035799,2024-01-31 07:41:08.839523,2024-01-31 07:45:52.525983,0 days 00:04:43.686460,entropy,log2,best,COMPLETE,Decision_Tree_Classifier,,,,,,,,,,
+1,0.9690003175835422,2024-01-31 07:45:52.528036,2024-01-31 07:50:25.997216,0 days 00:04:33.469180,log_loss,log2,random,COMPLETE,Decision_Tree_Classifier,,,,,,,,,,
+2,0.9727196097395167,2024-01-31 07:50:26.000225,2024-01-31 07:54:26.238470,0 days 00:04:00.238245,gini,,random,COMPLETE,Decision_Tree_Classifier,,,,,,,,,,
+0,0.9832009588478462,2024-01-31 07:54:30.464183,2024-01-31 08:00:33.185123,0 days 00:06:02.720940,,,,PRUNED,XGB_Classifier,gbtree,0.5403250465554214,289.0,approx,,,,,,
+1,0.9832005987758029,2024-01-31 08:00:33.188120,2024-01-31 08:05:01.070354,0 days 00:04:27.882234,,,,PRUNED,XGB_Classifier,gbtree,0.9331549344828524,114.0,exact,,,,,,
+2,0.983800958895856,2024-01-31 08:05:01.071353,2024-01-31 08:10:56.203255,0 days 00:05:55.131902,,,,PRUNED,XGB_Classifier,dart,0.6951656730630655,401.0,exact,,,,,,
+0,0.9449593754718444,2024-01-31 08:10:57.771196,2024-01-31 08:16:20.301786,0 days 00:05:22.530590,,,,COMPLETE,KNN_Classifier,,,,,brute,9.0,uniform,,,
+1,0.9555994803440273,2024-01-31 08:16:20.304787,2024-01-31 08:21:35.162398,0 days 00:05:14.857611,,,,COMPLETE,KNN_Classifier,,,,,auto,5.0,distance,,,
+2,0.9449593754718444,2024-01-31 08:21:35.163428,2024-01-31 08:26:45.061112,0 days 00:05:09.897684,,,,COMPLETE,KNN_Classifier,,,,,brute,9.0,uniform,,,
+0,0.9850007189438462,2024-01-31 08:26:48.700230,2024-01-31 08:30:03.807877,0 days 00:03:15.107647,,,,PRUNED,Light_GBM,,0.7595521352826132,148.0,,,,,gbdt,balanced,-1.0
+1,0.9859798868557622,2024-01-31 08:30:03.809967,2024-01-31 08:34:43.396304,0 days 00:04:39.586337,,,,COMPLETE,Light_GBM,,0.18130866415578073,121.0,,,,,dart,balanced,-1.0
+2,0.9872002790318287,2024-01-31 08:34:43.397306,2024-01-31 08:38:22.653373,0 days 00:03:39.256067,,,,PRUNED,Light_GBM,,0.8873525551291126,138.0,,,,,dart,balanced,-1.0

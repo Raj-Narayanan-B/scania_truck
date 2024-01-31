@@ -1,6 +1,7 @@
 import pandas as pd
 import json
 import mlflow.pyfunc
+import mlflow
 
 # from sklearn.metrics import confusion_matrix
 
@@ -45,6 +46,15 @@ class model_trainer_component:
 
         x_train,y_train = train_df.drop(columns = target), train_df[target]
         x_test,y_test = test_df.drop(columns = target), test_df[target]
+        
+        source = mlflow.search_registered_models(filter_string = f"tags.model_type ilike 'champion'")[0].latest_versions[0].source
+        model = mlflow.pyfunc.load_model(model_uri = source)
+
+        # y_pred = model.predict(x_test)
+        model_run_id = model.metadata.run_id
+        params = mlflow.get_run(model_run_id).data.params
+        
+        print(eval_metrics(y_true = y_test, y_pred = y_pred))
 
         print(f"\nx_train shape: {x_train.shape}, y_train shape: {y_train.shape}")
         print(f"x_test shape: {x_test.shape}, y_test shape: {y_test.shape}")

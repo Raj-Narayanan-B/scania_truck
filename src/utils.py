@@ -4,6 +4,7 @@ from pathlib import Path #type: ignore
 from box import ConfigBox
 from ensure import ensure_annotations
 import os
+import re #type: ignore
 import joblib
 import yaml
 from src import logger
@@ -45,9 +46,11 @@ import mlflow
 import mlflow.sklearn
 import mlflow.xgboost
 import mlflow.pyfunc
+import mlflow.lightgbm
 from mlflow.client import MlflowClient
-client = MlflowClient(tracking_uri="https://dagshub.com/Raj-Narayanan-B/StudentMLProjectRegression.mlflow",
-                      registry_uri="https://dagshub.com/Raj-Narayanan-B/StudentMLProjectRegression.mlflow")
+# client = MlflowClient(tracking_uri="https://dagshub.com/Raj-Narayanan-B/StudentMLProjectRegression.mlflow",
+#                       registry_uri="https://dagshub.com/Raj-Narayanan-B/StudentMLProjectRegression.mlflow")
+# client = MlflowClient()
 trial_number = 0
 
 def load_yaml(filepath:Path):
@@ -276,6 +279,7 @@ def parameter_tuning(model_class : ML_Model,
                      y_train: pd.DataFrame, 
                      y_test: pd.DataFrame,
                      report_: dict,
+                     client: MlflowClient,
                      *args):
        
     tuner_report = {}
@@ -429,6 +433,177 @@ def parameter_tuning(model_class : ML_Model,
 
     return (tuner_report, report_, best_model_so_far_, exp_id_list)
 
+def parameter_tuning_2(models: dict, client: MlflowClient, dataframe: pd.DataFrame):
+    """
+    Parameter Tuning for batch-wise data. cross_validate() is used to handle the batch-wise data. The last two batches are meant for validation datasets.
+
+    Optuna is used to tune and select the optimal hyperparameters of a given model.
+
+    The batch data is passed into this function along with the models list that we want to check.
+
+    This function implements MLFlow tracking to log the metrics and params. 
+    This function also creates an experiment in MLFlow for each and every model. 
+
+    Inside the experiment of a model in MLFlow, a parent run is created with Optuna selecting a set of Hyper-Parameters for the model.
+    Inside the context of this parent run, for a given model, every iteration of a given batch of data, for a selected hyper-parameter set, will be logged as a child run.
+
+    The batches(or child runs) will continue iterating normally till first five batches, and then from the sixth batch onwards and for every even batch number, 
+    the median accuracy of previous batches will be checked with the current batches' accuracy. 
+    If the current batch's accuracy is lower than the median accuracy of previous batches, that trial(consisting of the parent run and all its child runs) will be pruned.
+
+    Those iterations that continue till the very last batch will be logged in MLFlow as child runs. 
+    From the performance of child runs, the best performing child run is chosen as the parent run for that trial.
+
+    Like this, 3 trials in optuna are done, where child and parent runs are created and logged if they iterate till the last batch of data.
+
+    After the 3rd trial, all the parent runs in that model's experiment are compared and the best parent is chosen as the challenger.
+    """
+    from sklearn.metrics import StratifiedKFold, cross_validate
+    from pprint import pprint #type: ignore
+    
+    batch_list = batch_data_create(dataframe)
+
+    exp_count = 154
+    exp_id_list = []
+    params = load_yaml(PARAMS_PATH)
+    model_trial_study_df = pd.DataFrame()
+    accuracies = {}
+    for keys in models.keys():
+        accuracies[keys] = {}
+        accuracies[keys]['Optuna'] = []
+        # accuracies[keys]['HyperOpt'] = []
+    tags = {"tuner": "optuna",
+            "metrics": "['Balanced_Accuracy_Score', 'F1_Score', 'Accuracy_Score', 'Cost']"}
+    count = 1
+    for key,value in models.items():
+        exp_id = mlflow.create_experiment(name = f"{exp_count}_{key}_{exp_count}", tags = tags)
+            
+        def optuna_objective(trial,exp_id = exp_id):
+            with mlflow.start_run(experiment_id = exp_id,
+                            run_name = f"{key}_Trial_{trial.number}",
+                            tags = {"tuner" : "optuna",
+                                    'trial': f"{trial.number}",
+                                    'model' : key,
+                                    "run_type": "parent"}) as parent_run:
+                parent_run_id = parent_run.info.run_id
+                child_id_list = []
+                batch_wise_accuracy = []
+                space = {}
+                flag = 0
+                print(f"\n**************\nTrial_Number: {trial.number}\n**************")
+                for key_,value_ in params['optuna'][key].items():
+                        space[key_] = eval(value_)
+                for i in range(len(batch_list)):
+                    x = batch_list[i].drop(columns='class')
+                    y = batch_list[i]['class']
+                    print(f"\nBatch {i}")
+                    # for key,value in models.items():
+                            
+                    pprint(f"\nSpace: {space}",compact=True)
+                    pipeline = Pipeline(steps = [("KNN_Imputer", KNNImputer()),
+                                                ("Robust_Scaler", RobustScaler()),
+                                                ("SMOTETomek", SMOTETomek(sampling_strategy = "minority",random_state = 42, n_jobs = -1)),
+                                                (f"{key}", value(**space))])
+                    skf_cv = StratifiedKFold(n_splits = 3, shuffle = True, random_state = 42)
+                    
+                    cv_results = cross_validate(estimator=pipeline,
+                                            X= x,
+                                            y = y,
+                                            scoring = 'accuracy',
+                                            cv = skf_cv,
+                                            n_jobs = -1,
+                                            verbose = 2,
+                                            return_estimator=True)
+                    accuracy = cv_results['test_score']
+                    pipeline = cv_results['estimator'][0]
+                    estimator = pipeline.named_steps[key]
+                    print(f"\nAccuracy of {key}: {np.mean(accuracy)}")
+
+                    batch_wise_accuracy.append(np.mean(accuracy))
+                    accuracies[key]['Optuna'].append(np.mean(accuracy))
+                    print(f"\nBatchwise_accuracies: {batch_wise_accuracy}")         
+                    print(f"\nBatchwise_Median_Accuracy: {np.median(batch_wise_accuracy)}")         
+                    print(f"\nAccumulated Accuracies:\n{accuracies}\n")
+
+                    trial.report(np.mean(accuracy),i)
+                    child_run_id = 0
+                    with mlflow.start_run(experiment_id = exp_id,
+                                        run_name = f"Batch_{i}",
+                                        tags = {"tuner" : "optuna",
+                                                'model' : key,
+                                                "run_type": "child"},
+                                        nested = True) as child_run:
+                                child_run_id = child_run.info.run_id
+                                child_id_list.append(child_run_id)
+                                # data = (x_train, y_test, y_pred)
+                                mlflow_logger(model = estimator,
+                                            client = client,                        ## Logs every child runs for successful batches 
+                                            model_name = key,
+                                            #   params = model.get_params(),
+                                            should_log_parent_model = False,
+                                            artifact_path = f'{key}_batch_{i}')
+                                mlflow.log_metrics(metrics = {"Accuracy_Score": np.mean(accuracy)})
+                                dataset_ = mlflow.data.from_pandas(df = batch_list[i],
+                                                                targets = 'class',
+                                                                name= f"Batch {i}")
+                                mlflow.log_input(dataset = dataset_,
+                                                context = 'Batchwise Cross-Validation')
+                    if (i > 5) and (i % 2 == 0):
+                        trial.study.set_user_attr('median_accuracy',np.median(batch_wise_accuracy))
+                        if np.mean(accuracy) < np.median(batch_wise_accuracy):
+                            flag = 1
+                            break
+                if flag == 0:
+                    mlflow_logger(model_name = key,
+                            should_log_parent_model = True,
+                            client = client,
+                            metrics_ =  {"Accuracy_Score":np.mean(batch_wise_accuracy)},
+                            run_id = parent_run_id,
+                            exp_id = exp_id,
+                            #   registered_model_name = f"Challenger_Optuna_{model_name}",
+                            artifact_path = f'candidate_{key}')
+            if flag == 1:
+                mlflow.delete_run(run_id = parent_run_id)
+                try:
+                    for child_run in child_id_list:
+                        mlflow.delete_run(child_run)
+                except:
+                    pass
+
+                raise optuna.TrialPruned()
+
+            return np.mean(batch_wise_accuracy)
+        find_params = optuna.create_study(direction = 'maximize',pruner=optuna.pruners.MedianPruner(),sampler = optuna.samplers.TPESampler(constant_liar=True))
+        find_params.optimize(func = optuna_objective,
+                            n_trials = 3)
+        if count == 1:
+            model_trial_study_df = find_params.trials_dataframe()
+            model_trial_study_df['Model_name'] = key
+            count += 1
+        else:
+            temp_df = find_params.trials_dataframe()
+            temp_df['Model_name'] = key
+            model_trial_study_df = pd.concat([model_trial_study_df, temp_df])
+        model_trial_study_df.to_csv('artifacts/metrics/model_trial_study_df.csv', index = False)
+        
+        mlflow_df = mlflow.search_runs(experiment_ids=[f'{exp_id}'])
+        if mlflow_df.empty:
+            pass
+        else:
+            mlflow_logger(client = client,
+                        model_name = key,
+                        exp_id = exp_id,
+                        registered_model_name = f"Candidate_{key}",
+                        artifact_path = None)
+            exp_id_list.append(exp_id)
+
+    best_exp_id = mlflow_logger(exp_id = exp_id_list,
+                                should_register_model=True,
+                                registered_model_name = 'Challenger',
+                                artifact_path=None)
+    
+    return (model_trial_study_df, exp_id_list, accuracies, best_exp_id)
+
 def best_model_finder(report: dict, models: dict):
     best_models_ = sorted(report.items(), key = lambda x: x[1]['Best_Cost'])[:7]
     best_models = [(best_models_[i][0],report[best_models_[i][0]]['Best_Cost']) for i in range(len(best_models_))]
@@ -525,7 +700,7 @@ def voting_clf_trainer(best_estimators:list[tuple],
                     model = voting_classifier_,
                     model_name = 'Voting_Classifier',
                     should_log_parent_model = False,
-                    artifact_path = f'voting_classifier')
+                    artifact_path = f'Voting_Classifier')
         
         mlflow_logger(data = data,
                     model_name = 'Voting_Classifier',
@@ -568,20 +743,23 @@ def model_trainer(x_train : pd.DataFrame, y_train : pd.DataFrame, x_test : pd.Da
     
     return cost
 
-def mlflow_logger(artifact_path: str, data = None, model = None, model_name: str = None, 
-                  should_log_parent_model: bool = False, should_register_champion_model:bool = False, registered_model_name: str = None, 
+def mlflow_logger(artifact_path: str, client : MlflowClient, metrics_: dict = None, data = None, 
+                  model = None, model_name: str = None, is_tuning_complete: bool = False,
+                  should_log_parent_model: bool = False, should_register_model:bool = False, 
+                  registered_model_name: str = None, 
                   run_id: str =  None, exp_id: int|list = None):
-    if not artifact_path and should_register_champion_model == False:
+    if not artifact_path and should_register_model == False:
         # x_train = data
+        print("Registering Best Parent Model")
         print("Client_Tracking_URI: ", client.tracking_uri)
         print("Client_Registry_URI: ", client._registry_uri)
         filter_string = f"tags.run_type ilike 'parent'"
         best_run_id = mlflow.search_runs(experiment_ids=[exp_id],
-                                         order_by = ['metrics.Cost'],
-                                         filter_string = filter_string)[['run_id','artifact_uri','metrics.Cost']]['run_id'][0]
+                                         order_by = ['metrics.Accuracy_Score DESC'],
+                                         filter_string = filter_string)[['run_id','artifact_uri','metrics.Accuracy_Score']]['run_id'][0]
         best_artifact_path = mlflow.search_runs(experiment_ids=[exp_id],
-                                                order_by = ['metrics.Cost'],
-                                                filter_string = filter_string)[['run_id','artifact_uri','metrics.Cost']]['artifact_uri'][0]
+                                                order_by = ['metrics.Accuracy_Score DESC'],
+                                                filter_string = filter_string)[['run_id','artifact_uri','metrics.Accuracy_Score']]['artifact_uri'][0]
         artifact_path_name = client.list_artifacts(f'{best_run_id}')[0].path
         print(f"\nBest_Run_ID: {best_run_id}")
         print(f"Best_Model's_Artifact_Path: {best_artifact_path}/{artifact_path_name}")
@@ -591,37 +769,52 @@ def mlflow_logger(artifact_path: str, data = None, model = None, model_name: str
                                     source = f"{best_artifact_path}/{artifact_path_name}",
                                     run_id = best_run_id)
     
-    elif not artifact_path and should_register_champion_model == True:
+    elif not artifact_path and should_register_model == True:
+        print(f"Registering Best Model so far as {registered_model_name}")
         parent_runs = mlflow.search_registered_models()
         print("Experiment IDs: ",exp_id)
-        runs_df = mlflow.search_runs(experiment_ids = exp_id,
-                            search_all_experiments = True,
-                            filter_string = f"tags.run_type ilike 'parent'")
+        if is_tuning_complete == False:
+            runs_df = mlflow.search_runs(experiment_ids = exp_id,
+                                search_all_experiments = True,
+                                filter_string = f"tags.run_type ilike 'parent'")
+        else:
+            runs_df = mlflow.search_runs(experiment_ids = exp_id,
+                                         search_all_experiments = True,
+                                         filter_string = f"tags.run_type ilike 'parent' and tags.model_type ilike 'Challenger'")
         runs_list_ = [parent_runs[i].latest_versions[0].run_id for i in range(len(parent_runs))]
-        best_run = runs_df[runs_df['run_id'].isin(runs_list_)].sort_values(by = "metrics.Cost").reset_index(drop=True)['run_id'][0]
-        best_artifact = runs_df[runs_df['run_id'].isin(runs_list_)].sort_values(by = "metrics.Cost").reset_index(drop=True)['artifact_uri'][0]
+        best_run = runs_df[runs_df['run_id'].isin(runs_list_)].sort_values(by = "metrics.Accuracy_Score", ascending=False).reset_index(drop=True)['run_id'][0]
+        best_artifact = runs_df[runs_df['run_id'].isin(runs_list_)].sort_values(by = "metrics.Accuracy_Score", ascending=False).reset_index(drop=True)['artifact_uri'][0]
         artifact_path_name = client.list_artifacts(f'{best_run}')[0].path
-        model_name = runs_df[runs_df['run_id'].isin(runs_list_)].sort_values(by = "metrics.Cost").reset_index(drop=True)['tags.mlflow.runName'][0]
-        model_name = model_name.replace("HyperOpt for ", "").replace("Optuna for ", "")
-        client.create_registered_model(name = f"Champion {model_name}",
-                                    tags = {"model_type": "champion"},
-                                    description = f"{model_name} is the new champion model")
-        client.create_model_version(name = f"Champion {model_name}",
+        best_exp_id = runs_df[runs_df['run_id'] == best_run]['experiment_id'].values[0]
+        model_name = runs_df[runs_df['run_id'].isin(runs_list_)].sort_values(by = "metrics.Accuracy_Score", ascending=False).reset_index(drop=True)['tags.mlflow.runName'][0]
+        # model_name = model_name.replace("Optuna for ", "")
+        model_name = re.sub(r'_Trial_\d+', '', model_name)
+        if is_tuning_complete == False:
+            client.set_tag(best_run, "model_type", "Challenger")
+        client.create_registered_model(name = f"{registered_model_name} {model_name}",
+                                    tags = {"model_type": f"{registered_model_name}"},
+                                    description = f"{model_name} is a {registered_model_name} model")
+        
+        client.create_model_version(name = f"{registered_model_name} {model_name}",
                                     source = f"{best_artifact}/{artifact_path_name}",
                                     run_id = best_run,
-                                    tags = {"model_type" : "champion",
+                                    tags = {"model_type" : f"{registered_model_name}",
                                             "model_name" : model_name})
+        return (best_exp_id)
 
-    elif should_log_parent_model == True and should_register_champion_model == False:
-        x_train, x_test, y_train, y_test = data
+    elif should_log_parent_model == True and should_register_model == False:
+        print("Logging Parent Model")
+        # x_train, x_test, y_train, y_test = data
         print("Experiment IDs: ",exp_id)
+        # print("Tracking URI: ",mlflow.get_tracking_uri())
+        # print("Registry URI: ",client._registry_uri)
         filter_string=f"tags.mlflow.parentRunId ILIKE '{run_id}'"
         best_run_id = mlflow.search_runs(experiment_ids=[exp_id],
                         filter_string=filter_string,
-                        order_by = ['metrics.Cost'])[['run_id','artifact_uri','metrics.Cost']]['run_id'][0]
+                        order_by = ['metrics.Accuracy_Score DESC'])[['run_id','artifact_uri','metrics.Accuracy_Score']]['run_id'][0]
         best_artifact_path = mlflow.search_runs(experiment_ids=[exp_id],
                         filter_string=filter_string,
-                        order_by = ['metrics.Cost'])[['run_id','artifact_uri','metrics.Cost']]['artifact_uri'][0]
+                        order_by = ['metrics.Accuracy_Score DESC'])[['run_id','artifact_uri','metrics.Accuracy_Score']]['artifact_uri'][0]
         artifact_path_name = client.list_artifacts(f'{best_run_id}')[0].path
         print(f"Parent_Run_ID: {run_id}")
         print(f"Artifact_Path: {best_artifact_path}/{artifact_path_name}")
@@ -636,22 +829,28 @@ def mlflow_logger(artifact_path: str, data = None, model = None, model_name: str
                     if value == 'nan':
                         params[key] = np.nan
             print("Best Params:\n",{key: value for key, value in params.items() if value is not None},"\n")
-            signature = mlflow.xgboost.infer_signature(model_input = x_train,
-                                                        model_output = best_model.predict(x_train),
-                                                        params = {key: value for key, value in params.items() if value is not None})
+            # signature = mlflow.xgboost.infer_signature(model_input = x_train,
+            #                                             model_output = best_model.predict(x_train),
+            #                                             params = {key: value for key, value in params.items() if value is not None})
             mlflow.xgboost.log_model(xgb_model = best_model,
-                                     artifact_path = artifact_path,
-                                     signature = signature)
+                                     artifact_path = artifact_path)
+                                     #signature = signature)
+        elif model_name == 'Light_GBM':
+            best_model = mlflow.lightgbm.load_model(f"{best_artifact_path}/{artifact_path_name}")
+            mlflow.lightgbm.log_model(lgb_model = model,
+                                      artifact_path = artifact_path)
         else:
+            # print("Tracking URI: ",client.tracking_uri)
+            # print("Registry URI: ",client._registry_uri)
             best_model = mlflow.sklearn.load_model(f"{best_artifact_path}/{artifact_path_name}")
             params = client.get_run(best_run_id).data.params
-            if model_name == "Stacked_Classifier" or model_name == "voting_classifier":
-                signature = mlflow.models.infer_signature(model_input = x_train,
-                                                        model_output = best_model.predict(x_train),
-                                                        params = params)
+            if model_name == "Stacked_Classifier" or model_name == "Voting_Classifier":
+                # signature = mlflow.models.infer_signature(model_input = x_train,
+                #                                         model_output = best_model.predict(x_train),
+                #                                         params = params)
                 mlflow.sklearn.log_model(sk_model = best_model,
-                                        artifact_path = artifact_path, 
-                                        signature = signature)
+                                        artifact_path = artifact_path)
+                                        # signature = signature)
                 for key,value in params.items():
                     try:
                         params[key] = eval(value)
@@ -668,12 +867,12 @@ def mlflow_logger(artifact_path: str, data = None, model = None, model_name: str
                         params[key] = value
                         if value == 'nan':
                             params[key] = np.nan
-                signature = mlflow.models.infer_signature(model_input = x_train,
-                                                            model_output = best_model.predict(x_train),
-                                                            params = {key: value for key, value in params.items() if value is not None})
+                # signature = mlflow.models.infer_signature(model_input = x_train,
+                #                                             model_output = best_model.predict(x_train),
+                #                                             params = {key: value for key, value in params.items() if value is not None})
                 mlflow.sklearn.log_model(sk_model = best_model,
-                                            artifact_path = artifact_path, 
-                                            signature = signature)
+                                            artifact_path = artifact_path)
+                                            # signature = signature)
         print("Best Params:\n",{key: value for key, value in params.items() if value is not None},"\n")
         if model_name == "Stacked_Classifier" or model_name == 'Voting_Classifier':
             flag = 0
@@ -767,14 +966,17 @@ def mlflow_logger(artifact_path: str, data = None, model = None, model_name: str
             else:
                 mlflow.log_params(params = best_model.get_params())
 
-        # if model_name == "Stacked_Classifier" or model_name == 'Voting_Classifier':
-        mlflow.log_metrics(metrics = eval_metrics(y_test , best_model.fit(x_train, y_train).predict(x_test)))
-        # else:
+        if model_name == "Stacked_Classifier" or model_name == 'Voting_Classifier':
+            # mlflow.log_metrics(metrics = eval_metrics(y_test , best_model.fit(x_train, y_train).predict(x_test)))
+            mlflow.log_metrics(metrics = metrics_)
+        else:
             # mlflow.log_metrics(metrics = eval_metrics(y_test , best_model.set_params(**params).fit(x_train, y_train).predict(x_test)))
+            mlflow.log_metrics(metrics = metrics_)
 
     else:
-        x_train, y_test, y_pred = data
-        mlflow.log_metrics(metrics = eval_metrics(y_test , y_pred)) 
+        print("Logging params and child model")
+        # x_train, y_test, y_pred = data
+        # mlflow.log_metrics(metrics = eval_metrics(y_test , y_pred)) 
         if model_name == "Stacked_Classifier" or model_name == 'Voting_Classifier':
             flag = 0
             for i in range(len(model.get_params()['estimators'])):
@@ -848,30 +1050,95 @@ def mlflow_logger(artifact_path: str, data = None, model = None, model_name: str
                         v_clf_params[f"{key}_Params"] = value
                     print("Processed_NEW_V_CLF_Params: ",v_clf_params)
                     mlflow.log_params(params = v_clf_params)
+
         else:
             mlflow.log_params(params = model.get_params())
         if model_name == 'XGB_Classifier': 
-            signature = mlflow.xgboost.infer_signature(model_input = x_train,
-                                                      model_output = model.predict(x_train),
-                                                      params = {key: value for key, value in model.get_params().items() if value is not None}) 
+            # signature = mlflow.xgboost.infer_signature(model_input = x_train,
+            #                                           model_output = model.predict(x_train),
+            #                                           params = {key: value for key, value in model.get_params().items() if value is not None}) 
             mlflow.xgboost.log_model(xgb_model = model, 
-                                        artifact_path = artifact_path,
-                                        signature = signature)
+                                        artifact_path = artifact_path)
+                                        #signature = signature)
+            
+        elif model_name == 'Light_GBM':
+            mlflow.lightgbm.log_model(lgb_model = model,
+                                      artifact_path = artifact_path)
+            
         elif model_name == "Stacked_Classifier" or model_name == 'Voting_Classifier':     
             params = model.get_params()
             for key, value in params.items():
                 params[key] = str(value)
-            signature = mlflow.models.infer_signature(model_input = x_train,
-                                                      model_output = model.predict(x_train),
-                                                      params = params) 
+            # signature = mlflow.models.infer_signature(model_input = x_train,
+            #                                           model_output = model.predict(x_train),
+            #                                           params = params) 
             mlflow.sklearn.log_model(sk_model = model, 
-                                        artifact_path = artifact_path,
-                                        signature = signature)   
+                                        artifact_path = artifact_path)
+                                        #signature = signature)   
             
         else:
-            signature = mlflow.models.infer_signature(model_input = x_train,
-                                                      model_output = model.predict(x_train),
-                                                      params = {key: value for key, value in model.get_params().items() if value is not None}) 
+            # signature = mlflow.models.infer_signature(model_input = x_train,
+            #                                           model_output = model.predict(x_train),
+            #                                           params = {key: value for key, value in model.get_params().items() if value is not None}) 
             mlflow.sklearn.log_model(sk_model = model, 
-                                        artifact_path = artifact_path,
-                                        signature = signature)   
+                                        artifact_path = artifact_path)
+                                        #signature = signature)   
+
+def batch_data_create(data: pd.DataFrame):
+    from sklearn.utils import shuffle
+
+    batch_size = 5000
+    num_batches = data.shape[0] // batch_size
+    data_shuffled = shuffle(data, random_state=42)
+
+    batch_list = []
+    # Iterate through batches
+    for i in range(num_batches):
+        # Extract a batch
+        start_idx = i * batch_size
+        end_idx = ((i + 1) * batch_size)
+        # print(f"start_idx: {start_idx}, end_idx: {end_idx}")
+        batch_list.append(data_shuffled.iloc[start_idx:end_idx, :])
+
+        ### To print the details of batch_data
+        sum1 = 0
+        sum0 = 0
+        for i in range(len(batch_list)):
+            print(f"Batch: {i}")
+            sum0 += batch_list[i]['class'].value_counts()[0] 
+            sum1 += batch_list[i]['class'].value_counts()[1] 
+            print(batch_list[i]['class'].value_counts(),'\n')
+
+        print(f"Total no of Class 0 in all batches: {sum0}")
+        print(f"Total no of Class 1 in all batches: {sum1}")
+
+    return batch_list
+
+def params_extractor(data: pd.DataFrame):
+
+    params_yaml = load_yaml(PARAMS_PATH)
+
+    data = data[data['state']=='COMPLETE']
+
+    data.sort_values(by = 'value', ascending=False, inplace = True)
+
+    params_name = data.columns[(data.columns.str.contains('params')) | (data.columns.str.contains('Model_name')) | (data.columns.str.contains('value'))]
+    params = {}
+    for i in data[params_name]['Model_name']:
+        params[i] = {}
+        for j in params_yaml['optuna'][i].keys():
+            params[i][j] = data[params_name][data[params_name]['Model_name'] == i][f'params_{j}'].values.tolist()
+            params[i]['accuracy_value'] = data[params_name][data[params_name]['Model_name'] == i]['value'].values.tolist()
+    
+    return (params)
+
+def params_evaluator(sample_params: dict):
+    # sample_params = client.get_run('cd460708497e4677a2cdcadeaefd8878').data.params
+    for key,value in sample_params.items():
+        try:
+            sample_params[key] = eval(value)
+        except:
+            sample_params[key] = value
+            if value == 'nan':
+                sample_params[key] = np.nan
+    return sample_params

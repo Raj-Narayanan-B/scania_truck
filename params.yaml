@@ -5,6 +5,13 @@ optuna:
   SGD_Classifier:
     loss: trial.suggest_categorical('loss', ['squared_epsilon_insensitive', 'epsilon_insensitive', 'huber', 'squared_error', 'perceptron', 'squared_hinge', 'hinge', 'log_loss', 'modified_huber'])
 
+  Light_GBM:
+    boosting_type: trial.suggest_categorical('boosting_type', ['gbdt','dart'])
+    learning_rate: trial.suggest_float('learning_rate', .00001, 1.0)
+    n_estimators: trial.suggest_int('n_estimators', 100, 150)
+    class_weight: trial.suggest_categorical('class_weight', ['balanced'])
+    n_jobs: trial.suggest_categorical('n_jobs', [-1])
+
   Random Forest:
     n_estimators: trial.suggest_int('n_estimators', 100, 150)
     criterion: trial.suggest_categorical('criterion', ['log_loss', 'entropy', 'gini'])
@@ -25,7 +32,7 @@ optuna:
     n_estimators: trial.suggest_int('n_estimators', 50, 100)
 
   ExtraTreesClassifier:
-    n_estimators: trial.suggest_int('n_estimators', 100, 1000)
+    n_estimators: trial.suggest_int('n_estimators', 100, 500)
     criterion: trial.suggest_categorical('criterion', ['log_loss', 'entropy', 'gini'])
     max_features: trial.suggest_categorical('max_features', ['sqrt', 'log2', None])
     class_weight: trial.suggest_categorical('class_weight', ['balanced', 'balanced_subsample'])
@@ -39,8 +46,8 @@ optuna:
     max_features: trial.suggest_categorical('max_features', ['sqrt', 'log2', None])
 
   XGB_Classifier:
-    n_estimators: trial.suggest_int('n_estimators', 100, 1000)
-    learning_rate: trial.suggest_float('learning_rate', .00001, 8.0)
+    n_estimators: trial.suggest_int('n_estimators', 100, 500)
+    learning_rate: trial.suggest_float('learning_rate', .00001, 1.0)
     booster: trial.suggest_categorical('booster', ['gbtree', 'gblinear', 'dart'])
     tree_method: trial.suggest_categorical('tree_method', ['exact', 'approx', 'hist'])
 
@@ -101,7 +108,7 @@ hyperopt:
 
   XGB_Classifier:
     n_estimators: scope.int(hp.quniform('n_estimators', 100, 200, 1))
-    learning_rate: hp.uniform('learning_rate', .00001, 8.0)
+    learning_rate: hp.uniform('learning_rate', .00001, 1.0)
     booster: hp.choice('booster', ['gbtree', 'gblinear', 'dart'])
     tree_method: hp.choice('tree_method', ['exact', 'approx', 'hist'])
 

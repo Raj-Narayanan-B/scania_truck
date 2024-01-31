@@ -20,6 +20,7 @@ optuna
 hyperopt
 tqdm
 xgboost
+lightgbm
 # catboost
 imbalanced-learn
 cassandra-driver
