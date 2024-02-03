@@ -13,9 +13,13 @@ dagshub
 dvc
 dvc[gdrive]
 dvc[s3]
+pytest
+pytest-mock
+deprecation
 plotly
 nbformat
 ensure
+docker
 optuna
 hyperopt
 tqdm

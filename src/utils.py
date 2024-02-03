@@ -1,3 +1,4 @@
+exp_count = 281
 import pandas as pd
 import numpy as np
 from pathlib import Path #type: ignore
@@ -6,6 +7,7 @@ from ensure import ensure_annotations
 import os
 import re #type: ignore
 import joblib
+import deprecation
 import yaml
 from src import logger
 from src.constants import *
@@ -18,13 +20,15 @@ from cassandra.auth import PlainTextAuthProvider
 import warnings as w #type: ignore
 w.filterwarnings('ignore')
 
+from sklearn.datasets import make_classification
+
 from sklearn.impute import KNNImputer
 from sklearn.preprocessing import RobustScaler
 from imblearn.combine import SMOTETomek
 
 from sklearn.model_selection import train_test_split
-# from imblearn.pipeline import Pipeline
-from sklearn.pipeline import Pipeline
+from imblearn.pipeline import Pipeline as imb_pipeline
+from sklearn.pipeline import Pipeline as sk_pipeline
 from sklearn.metrics import (balanced_accuracy_score, f1_score,
                              accuracy_score, confusion_matrix)
 from sklearn.linear_model import LogisticRegression, SGDClassifier
@@ -36,7 +40,7 @@ from xgboost import XGBClassifier
 # from catboost import CatBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
-from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold, cross_validate
 import optuna
 from hyperopt import hp, fmin, Trials, tpe, STATUS_OK, space_eval
 from hyperopt.pyll.base import scope
@@ -88,9 +92,47 @@ def save_binary(file,filepath:Path):
     except Exception as e:
         raise e
     
-def mk_dir(filepath:Path):
-    os.makedirs(filepath, exist_ok=True)
-    logger.info(f"directory: {filepath} created")
+def make_synthetic_data_for_unit_testing():     ## func for pytest_fixture data creation
+    schema_1 = ['ident_id', 'aa_000', 'ab_000', 'ac_000', 'ad_000', 'ae_000', 'af_000',
+                'ag_000', 'ag_001', 'ag_002', 'ag_003', 'ag_004', 'ag_005', 'ag_006', 'ag_007',
+                'ag_008', 'ag_009', 'ah_000', 'ai_000', 'aj_000', 'ak_000', 'al_000', 'am_0',
+                'an_000', 'ao_000', 'ap_000', 'aq_000', 'ar_000', 'as_000', 'at_000', 'au_000',
+                'av_000', 'ax_000', 'ay_000', 'ay_001', 'ay_002', 'ay_003', 'ay_004', 'ay_005',
+                'ay_006', 'ay_007', 'ay_008', 'ay_009', 'az_000', 'az_001', 'az_002', 'az_003',
+                'az_004', 'az_005', 'az_006', 'az_007', 'az_008', 'az_009', 'ba_000', 'ba_001',
+                'ba_002', 'ba_003', 'ba_004', 'ba_005', 'ba_006', 'ba_007', 'ba_008', 'ba_009',
+                'bb_000', 'bc_000', 'bd_000', 'be_000', 'bf_000', 'bg_000', 'bh_000', 'bi_000',
+                'bj_000', 'bk_000', 'bl_000', 'field_74_']
+    schema_2 = ['ident_id', 'bm_000', 'bn_000', 'bo_000', 'bp_000', 'bq_000', 'br_000',
+                'bs_000', 'bt_000', 'bu_000', 'bv_000', 'bx_000', 'by_000', 'bz_000', 'ca_000',
+                'cb_000', 'cc_000', 'cd_000', 'ce_000', 'cf_000', 'cg_000', 'ch_000', 'ci_000',
+                'cj_000', 'ck_000', 'cl_000', 'cm_000', 'cn_000', 'cn_001', 'cn_002', 'cn_003',
+                'cn_004', 'cn_005', 'cn_006', 'cn_007', 'cn_008', 'cn_009', 'co_000', 'cp_000',
+                'cq_000', 'cr_000', 'cs_000', 'cs_001', 'cs_002', 'cs_003', 'cs_004', 'cs_005',
+                'cs_006', 'cs_007', 'cs_008', 'cs_009', 'ct_000', 'cu_000', 'cv_000', 'cx_000',
+                'cy_000', 'cz_000', 'da_000', 'db_000', 'dc_000', 'dd_000', 'de_000', 'df_000',
+                'dg_000', 'dh_000', 'di_000', 'dj_000', 'dk_000', 'dl_000', 'dm_000', 'dn_000',
+                'do_000', 'dp_000', 'dq_000', 'dr_000']
+    schema_3= ['ident_id', 'ds_000', 'dt_000', 'du_000', 'dv_000', 'dx_000', 'dy_000',
+                'dz_000', 'ea_000', 'eb_000', 'ec_00', 'ed_000', 'ee_000', 'ee_001', 'ee_002',
+                'ee_003', 'ee_004', 'ee_005', 'ee_006', 'ee_007', 'ee_008', 'ee_009', 'ef_000',
+                'eg_000']
+    sample_df = []
+    for i in range(3):
+        x, y = make_classification(n_features = len(eval(f"schema_{i+1}")), n_samples=500, random_state =42)
+        print(x.shape)
+        print(eval(f"schema_{i+1}"))
+        df = pd.DataFrame(x, columns = eval(f"schema_{i+1}"))
+        df['ident_id'] = list(range(1,501))
+        if i == 0:
+            df[df.drop(columns = ['ident_id','field_74_']) < -1] = 'na'
+            df['field_74_'] = y
+            df['field_74_'] = df['field_74_'].map({0:'neg',1:'pos'})
+        else:
+            df[df.drop(columns = ['ident_id']) < -1] = 'na'
+        # df = stage_1_processing_function(df)
+        sample_df.append(df)
+    return sample_df
 
 def DB_data_loader(config: list):
     with open(config[1]) as f:
@@ -184,7 +226,7 @@ def stage_2_processing_function(dataframe: pd.DataFrame) -> pd.DataFrame:
     if not os.path.exists(preprocessor_config.preprocessor_path):
         logger.info(f"Stage 2 Processing Commencing")
 
-        pipeline = Pipeline(steps=[('Knn_imputer',KNNImputer()),
+        pipeline = sk_pipeline(steps=[('Knn_imputer',KNNImputer()),
                                 ('Robust_Scaler',RobustScaler())],
                                 verbose=True)
         smote = SMOTETomek(n_jobs=-1,sampling_strategy='minority',random_state=8)
@@ -257,7 +299,7 @@ def stage_2_processing_function(dataframe: pd.DataFrame) -> pd.DataFrame:
 
         return (transformed_df)
     
-def eval_metrics(y_true , y_pred) -> float:
+def eval_metrics(y_true , y_pred):
         balanced_accuracy_score_ = float(balanced_accuracy_score(y_true=y_true, y_pred=y_pred))
 
         f1_score_ = float(f1_score(y_true=y_true, y_pred=y_pred))
@@ -272,6 +314,7 @@ def eval_metrics(y_true , y_pred) -> float:
                  "Accuracy_Score" : accuracy_score_,
                  "Cost" : cost_})
 
+############################################################ DEPRECATED ############################################################
 def parameter_tuning(model_class : ML_Model, 
                      model_name: str, 
                      x_train: pd.DataFrame, 
@@ -432,6 +475,7 @@ def parameter_tuning(model_class : ML_Model,
     exp_id_list.append(exp_id)
 
     return (tuner_report, report_, best_model_so_far_, exp_id_list)
+############################################################ DEPRECATED ############################################################
 
 def parameter_tuning_2(models: dict, client: MlflowClient, dataframe: pd.DataFrame):
     """
@@ -458,12 +502,11 @@ def parameter_tuning_2(models: dict, client: MlflowClient, dataframe: pd.DataFra
 
     After the 3rd trial, all the parent runs in that model's experiment are compared and the best parent is chosen as the challenger.
     """
-    from sklearn.metrics import StratifiedKFold, cross_validate
     from pprint import pprint #type: ignore
     
     batch_list = batch_data_create(dataframe)
 
-    exp_count = 154
+    # exp_count = 276                                         #################CHANGED
     exp_id_list = []
     params = load_yaml(PARAMS_PATH)
     model_trial_study_df = pd.DataFrame()
@@ -493,16 +536,14 @@ def parameter_tuning_2(models: dict, client: MlflowClient, dataframe: pd.DataFra
                 print(f"\n**************\nTrial_Number: {trial.number}\n**************")
                 for key_,value_ in params['optuna'][key].items():
                         space[key_] = eval(value_)
-                for i in range(len(batch_list)):
+                for i in range(len(batch_list)):     #################CHANGED
                     x = batch_list[i].drop(columns='class')
                     y = batch_list[i]['class']
-                    print(f"\nBatch {i}")
-                    # for key,value in models.items():
-                            
+                    print(f"\nBatch {i}")                          
                     pprint(f"\nSpace: {space}",compact=True)
-                    pipeline = Pipeline(steps = [("KNN_Imputer", KNNImputer()),
+                    pipeline = imb_pipeline(steps = [("KNN_Imputer", KNNImputer()),
                                                 ("Robust_Scaler", RobustScaler()),
-                                                ("SMOTETomek", SMOTETomek(sampling_strategy = "minority",random_state = 42, n_jobs = -1)),
+                                                ("SMOTETomek", SMOTETomek(sampling_strategy = "minority",random_state = 42)),
                                                 (f"{key}", value(**space))])
                     skf_cv = StratifiedKFold(n_splits = 3, shuffle = True, random_state = 42)
                     
@@ -518,12 +559,15 @@ def parameter_tuning_2(models: dict, client: MlflowClient, dataframe: pd.DataFra
                     pipeline = cv_results['estimator'][0]
                     estimator = pipeline.named_steps[key]
                     print(f"\nAccuracy of {key}: {np.mean(accuracy)}")
-
+                    
                     batch_wise_accuracy.append(np.mean(accuracy))
                     accuracies[key]['Optuna'].append(np.mean(accuracy))
+                    if i>5:
+                        print(f"Dynamic/Moving Threshold: {dynamic_threshold(all_accuracies = batch_wise_accuracy)}")
                     print(f"\nBatchwise_accuracies: {batch_wise_accuracy}")         
                     print(f"\nBatchwise_Median_Accuracy: {np.median(batch_wise_accuracy)}")         
-                    print(f"\nAccumulated Accuracies:\n{accuracies}\n")
+                    # print(f"\nAccumulated Accuracies:\n{accuracies}\n")
+                    
 
                     trial.report(np.mean(accuracy),i)
                     child_run_id = 0
@@ -535,11 +579,9 @@ def parameter_tuning_2(models: dict, client: MlflowClient, dataframe: pd.DataFra
                                         nested = True) as child_run:
                                 child_run_id = child_run.info.run_id
                                 child_id_list.append(child_run_id)
-                                # data = (x_train, y_test, y_pred)
                                 mlflow_logger(model = estimator,
-                                            client = client,                        ## Logs every child runs for successful batches 
+                                            client = client,              ## Logs every child runs for successful batches 
                                             model_name = key,
-                                            #   params = model.get_params(),
                                             should_log_parent_model = False,
                                             artifact_path = f'{key}_batch_{i}')
                                 mlflow.log_metrics(metrics = {"Accuracy_Score": np.mean(accuracy)})
@@ -548,9 +590,9 @@ def parameter_tuning_2(models: dict, client: MlflowClient, dataframe: pd.DataFra
                                                                 name= f"Batch {i}")
                                 mlflow.log_input(dataset = dataset_,
                                                 context = 'Batchwise Cross-Validation')
-                    if (i > 5) and (i % 2 == 0):
+                    if (i > 5) and (i % 2 != 0):  #################CHANGED
                         trial.study.set_user_attr('median_accuracy',np.median(batch_wise_accuracy))
-                        if np.mean(accuracy) < np.median(batch_wise_accuracy):
+                        if np.mean(accuracy) < dynamic_threshold(all_accuracies = batch_wise_accuracy):#np.median(batch_wise_accuracy):
                             flag = 1
                             break
                 if flag == 0:
@@ -560,7 +602,6 @@ def parameter_tuning_2(models: dict, client: MlflowClient, dataframe: pd.DataFra
                             metrics_ =  {"Accuracy_Score":np.mean(batch_wise_accuracy)},
                             run_id = parent_run_id,
                             exp_id = exp_id,
-                            #   registered_model_name = f"Challenger_Optuna_{model_name}",
                             artifact_path = f'candidate_{key}')
             if flag == 1:
                 mlflow.delete_run(run_id = parent_run_id)
@@ -599,154 +640,319 @@ def parameter_tuning_2(models: dict, client: MlflowClient, dataframe: pd.DataFra
 
     best_exp_id = mlflow_logger(exp_id = exp_id_list,
                                 should_register_model=True,
-                                registered_model_name = 'Challenger',
+                                client = client,
+                                registered_model_name = 'Candidate_',
                                 artifact_path=None)
     
     return (model_trial_study_df, exp_id_list, accuracies, best_exp_id)
 
-def best_model_finder(report: dict, models: dict):
-    best_models_ = sorted(report.items(), key = lambda x: x[1]['Best_Cost'])[:7]
-    best_models = [(best_models_[i][0],report[best_models_[i][0]]['Best_Cost']) for i in range(len(best_models_))]
-    print('\nBest Models:')
-    for i in best_models:
-        print(i[0]," Cost: ", i[1],'\n\n')
-    best_models_with_params = []
-    for i in best_models:
-        # print(f"i: {i[0]}")
-        best_models_with_params.append((i[0],report[i[0]]['Fittable_Params']))
-    best_estimators = {}
-    # print("report:\n",report)
-    for i in range(len(best_models_with_params)):
-        # print ("best_models_with_params[i][0]: \n",best_models_with_params[i][0])
-        if (best_models_with_params[i][0] == 'Stacked_Classifier'): #best_models_with_params[i][0] == 'Voting_Classifier'):
-            best_estimators[best_models_with_params[i][0]] = models[best_models_with_params[i][0]]
-            # best_estimators[best_models_with_params[i][0]].set_params(**best_models_with_params[i][1])
+def dynamic_threshold(all_accuracies, quantile = 0.25):
+    # Calculate the moving average trend
+    recent_accuracies = all_accuracies[:-1]
 
-        elif (best_models_with_params[i][0] == 'Voting_Classifier'):
-            best_estimators[best_models_with_params[i][0]] = models[best_models_with_params[i][0]]
-            # best_estimators[best_models_with_params[i][0]].set_params()
-        else:
-            best_estimators[best_models_with_params[i][0]] = models[best_models_with_params[i][0]](**best_models_with_params[i][1])
-            # best_estimators[best_models_with_params[i][0]].set_params(**best_models_with_params[i][1])
-    best_estimators = list(zip(best_estimators.keys(),best_estimators.values()))
+    threshold = np.quantile(recent_accuracies,quantile)
+    # moving_average = (recent_accuracies)
 
-    costs = [value['Best_Cost'] for value in report.values()]
-    min_cost = min(costs)
-    best_model_so_far_ = [(i, min_cost, report[i]['Fittable_Params']) for i in report.keys() if min_cost == report[i]['Best_Cost']]
+    # Calculate the threshold dynamically based on the moving average
+    # threshold = recent_accuracies * threshold_factor
+    return threshold
 
-    return (best_model_so_far_,best_models_with_params,best_estimators)
+def best_model_finder(models: dict, client: MlflowClient, filter_string = None):
+############################################################ DEPRECATED ############################################################
+    # best_models_ = sorted(report.items(), key = lambda x: x[1]['Best_Cost'])[:7]
+    # best_models = [(best_models_[i][0],report[best_models_[i][0]]['Best_Cost']) for i in range(len(best_models_))]
+    # print('\nBest Models:')
+    # for i in best_models:
+    #     print(i[0]," Cost: ", i[1],'\n\n')
+    # best_models_with_params = []
+    # for i in best_models:
+    #     # print(f"i: {i[0]}")
+    #     best_models_with_params.append((i[0],report[i[0]]['Fittable_Params']))
+    # best_estimators = {}
+    # # print("report:\n",report)
+    # for i in range(len(best_models_with_params)):
+    #     # print ("best_models_with_params[i][0]: \n",best_models_with_params[i][0])
+    #     if (best_models_with_params[i][0] == 'Stacked_Classifier'): #best_models_with_params[i][0] == 'Voting_Classifier'):
+    #         best_estimators[best_models_with_params[i][0]] = models[best_models_with_params[i][0]]
+    #         # best_estimators[best_models_with_params[i][0]].set_params(**best_models_with_params[i][1])
 
-def stacking_clf_trainer(best_estimators:list[tuple], models: dict, best_model_so_far_: list[tuple],
+    #     elif (best_models_with_params[i][0] == 'Voting_Classifier'):
+    #         best_estimators[best_models_with_params[i][0]] = models[best_models_with_params[i][0]]
+    #         # best_estimators[best_models_with_params[i][0]].set_params()
+    #     else:
+    #         best_estimators[best_models_with_params[i][0]] = models[best_models_with_params[i][0]](**best_models_with_params[i][1])
+    #         # best_estimators[best_models_with_params[i][0]].set_params(**best_models_with_params[i][1])
+    # best_estimators = list(zip(best_estimators.keys(),best_estimators.values()))
+
+    # costs = [value['Best_Cost'] for value in report.values()]
+    # min_cost = min(costs)
+    # best_model_so_far_ = [(i, min_cost, report[i]['Fittable_Params']) for i in report.keys() if min_cost == report[i]['Best_Cost']]
+
+    # return (best_model_so_far_,best_models_with_params,best_estimators)
+############################################################ DEPRECATED ############################################################
+    
+    # Get the dictionary of all the registered challenger models from MLFlow.  
+    # This dict will have model names as keys and the run_IDs as values.
+    registered_models = {mlflow.search_registered_models(filter_string = filter_string)[i].latest_versions[0].name : mlflow.search_registered_models(filter_string = filter_string)[i].latest_versions[0].run_id for i in range(len(mlflow.search_registered_models(filter_string = filter_string)))}
+
+    # Get the accuracies and the respective params of the models as dict
+    run_details = {}
+    for key,value in registered_models.items():
+        run_details[client.get_run(value).data.tags['model']] = {}
+        run_details[client.get_run(value).data.tags['model']]['accuracy'] = client.get_run(value).data.metrics['Accuracy_Score']
+        run_details[client.get_run(value).data.tags['model']]['params'] = params_evaluator(client.get_run(value).data.params)
+
+    # Create a dataframe from the "run_details" dict and sort it by "accuracy" in DESC
+    # In this dataframe only the models whose accuracy is greater than 0.9 are chosen.
+    models_df = pd.DataFrame(run_details).T
+    
+    sorted_models_df = models_df[models_df['accuracy'] > 0.9].sort_values(by = 'accuracy', ascending=False)
+
+    # Using the sorted_models_df from above, we are creating another dict that has the models fitted with the parameters.
+    mlflow_models = {key:value(**(sorted_models_df.params[key])) for key,value in models.items() if  key in sorted_models_df.index}
+
+    # Create the list[tuple] best_estimators to fit in the voting classifier
+    best_estimators_mlflow = list(zip(mlflow_models.keys(),mlflow_models.values()))
+
+    # If using stacking classifier, get the final estimator using:
+    final_estimator_mlflow = {key:value(**(sorted_models_df.iloc[:1,:].params[key])) for key,value in models.items() if key in sorted_models_df.iloc[:1,:].index}
+    # Access the final estimator model using:
+
+    final_estimator = final_estimator_mlflow[sorted_models_df.iloc[:1,:].index.values[0]]
+
+    return best_estimators_mlflow, final_estimator_mlflow, final_estimator 
+
+def stacking_clf_trainer(best_estimators:list[tuple], final_estimator,#models: dict, best_model_so_far_: list[tuple],
                          x_train: pd.DataFrame, y_train: pd.DataFrame, x_test: pd.DataFrame, y_test: pd.DataFrame,
-                         report: dict):
-    stacked_classifier = StackingClassifier(estimators = best_estimators,
-                                    final_estimator =  models[best_model_so_far_[0][0]](**best_model_so_far_[0][2]),
-                                    cv = 5,
-                                    n_jobs = -1,
-                                    # passthrough = False,
-                                    verbose = 3)
-    tuned_params, stacked_clf_report, best_model_so_far, exp_id = parameter_tuning(model_class = stacked_classifier,
-                                                                model_name = 'Stacked_Classifier',
-                                                                x_train = x_train,
-                                                                x_test = x_test,
-                                                                y_train = y_train,
-                                                                y_test = y_test,
-                                                                report_ = report)
-    models_names_in_stacking_classifier, models_params_in_stacking_classifier = zip(*best_estimators)
-    report['Stacked_Classifier'] = {}
-    sc_params = {}
-    sc_params['estimators'] = best_estimators
-    sc_params['final_estimator'] = stacked_classifier.get_params()['final_estimator']
-    sc_params['cv'] = stacked_classifier.get_params()['cv']
-    sc_params['n_jobs'] = stacked_classifier.get_params()['n_jobs']
+                         client: MlflowClient):
+############################################################ DEPRECATED ############################################################
+    # stacked_classifier = StackingClassifier(estimators = best_estimators,
+    #                                 final_estimator =  models[best_model_so_far_[0][0]](**best_model_so_far_[0][2]),
+    #                                 cv = 5,
+    #                                 n_jobs = -1,
+    #                                 # passthrough = False,
+    #                                 verbose = 3)
+    # tuned_params, stacked_clf_report, best_model_so_far, exp_id = parameter_tuning(model_class = stacked_classifier,
+    #                                                             model_name = 'Stacked_Classifier',
+    #                                                             x_train = x_train,
+    #                                                             x_test = x_test,
+    #                                                             y_train = y_train,
+    #                                                             y_test = y_test,
+    #                                                             report_ = report)
+    # models_names_in_stacking_classifier, models_params_in_stacking_classifier = zip(*best_estimators)
+    # report['Stacked_Classifier'] = {}
+    # sc_params = {}
+    # sc_params['estimators'] = best_estimators
+    # sc_params['final_estimator'] = stacked_classifier.get_params()['final_estimator']
+    # sc_params['cv'] = stacked_classifier.get_params()['cv']
+    # sc_params['n_jobs'] = stacked_classifier.get_params()['n_jobs']
 
-    for i in range(len(models_names_in_stacking_classifier)):
-        report['Stacked_Classifier'][models_names_in_stacking_classifier[i]] = models_params_in_stacking_classifier[i].get_params()
+    # for i in range(len(models_names_in_stacking_classifier)):
+    #     report['Stacked_Classifier'][models_names_in_stacking_classifier[i]] = models_params_in_stacking_classifier[i].get_params()
 
-    report['Stacked_Classifier']['Best_Cost'] = tuned_params['Best_Cost']
+    # report['Stacked_Classifier']['Best_Cost'] = tuned_params['Best_Cost']
 
-    for i in sc_params.keys():
-        tuned_params['Fittable_Params'][i] = sc_params[i]
+    # for i in sc_params.keys():
+    #     tuned_params['Fittable_Params'][i] = sc_params[i]
 
-    report['Stacked_Classifier']['Optuna'] = tuned_params['Optuna']
-    report['Stacked_Classifier']['HyperOpt'] = tuned_params['HyperOpt']
-    report['Stacked_Classifier']['Fittable_Params'] = tuned_params['Fittable_Params']
+    # report['Stacked_Classifier']['Optuna'] = tuned_params['Optuna']
+    # report['Stacked_Classifier']['HyperOpt'] = tuned_params['HyperOpt']
+    # report['Stacked_Classifier']['Fittable_Params'] = tuned_params['Fittable_Params']
+############################################################ DEPRECATED ############################################################
+# Create the stacking_classifier object
+    stacking_clf = StackingClassifier(estimators = best_estimators,
+                                        final_estimator = final_estimator,
+                                        cv = 3,
+                                        n_jobs = -1,
+                                        verbose = 3,
+                                        passthrough = True)
+    
+# Test with Stacking_classifier
+    y_pred_stacking_clf = model_trainer_2(x_train = x_train, y_train = y_train,
+                                            x_test = x_test, y_test = y_test, model = stacking_clf)
+    metrics_stacking_clf = eval_metrics(y_true = y_test, y_pred = y_pred_stacking_clf)
+    metrics_stacking_clf['model'] = stacking_clf
+    metrics_stacking_clf['model_name'] = 'Stacked_Classifier'
 
-    return report,exp_id
+# Log Stacking_CLF in MLFlow
+    tags = {"metrics": "['Balanced_Accuracy_Score', 'F1_Score', 'Accuracy_Score', 'Cost']"}
+    exp_id_stack_clf = mlflow.create_experiment(name = f"{exp_count}_Stacked_Classifier_{exp_count}", tags = tags)
+    with mlflow.start_run(experiment_id = exp_id_stack_clf,
+                            run_name = f"Challenger {stacking_clf.__class__.__name__}",
+                            tags = {'model' : 'Stacked_Classifier',
+                                    "run_type": "parent",
+                                    "model_type" : "Challenger"}) as parent_run:
+        parent_run_id = parent_run.info.run_id
+        mlflow_logger(model = stacking_clf,
+                        client = client, 
+                        model_name = 'Stacked_Classifier',
+                        should_log_parent_model = False,
+                        artifact_path = f'candidate_Stacked_Classifier')
+        
+        mlflow.log_metrics(metrics = {"Accuracy_Score": metrics_stacking_clf['Accuracy_Score']})  
+        tags = {'model_type': "Challenger"}
+        mlflow_logger(client = client,
+                    model_name = 'Stacked_Classifier',
+                    exp_id = exp_id_stack_clf,
+                    registered_model_name = f"Challenger Stacked_Classifier",
+                    artifact_path = None,
+                    tags = tags)
+
+    return metrics_stacking_clf,exp_id_stack_clf, y_pred_stacking_clf, parent_run_id
 
     # models['Stacked_Classifier'] = StackingClassifier(**report['Stacked_Classifier']['Fittable_Params'])
 
 def voting_clf_trainer(best_estimators:list[tuple],
                        x_train: pd.DataFrame, y_train: pd.DataFrame, x_test: pd.DataFrame, y_test: pd.DataFrame,
-                       report: dict):
-    exp_id_voting_clf = mlflow.create_experiment(name = f"63_Voting_Classifier_63",
-                                                     tags = {"metrics": "['Balanced_Accuracy_Score', 'F1_Score', 'Accuracy_Score', 'Cost']"})
+                       client = MlflowClient):
+############################################################ DEPRECATED ############################################################
+    # exp_id_voting_clf = mlflow.create_experiment(name = f"63_Voting_Classifier_63",
+    #                                                  tags = {"metrics": "['Balanced_Accuracy_Score', 'F1_Score', 'Accuracy_Score', 'Cost']"})
+    # with mlflow.start_run(experiment_id = exp_id_voting_clf,
+    #                         run_name = f"Voting_Classifier",
+    #                         tags = {"run_type": "parent"}) as voting_clf_run:
+    #     # voting_clf_run_id = voting_clf_run.info.run_id
+    #     voting_classifier_ = VotingClassifier(estimators = best_estimators,
+    #                                                     voting = "hard",
+    #                                                     weights = None,
+    #                                                     n_jobs = -1,
+    #                                                     verbose = True)
+    #     voting_classifier_.fit(x_train,y_train)
+    #     y_pred = voting_classifier_.predict(x_test)
+    #     cost = eval_metrics(y_true = y_test, y_pred = y_pred)['Cost']
+    #     print(f"\nVoting Classifier Cost: {cost} \n")
+    #     data = (x_train, y_test, y_pred)
+        
+    #     mlflow_logger(data = data,
+    #                 model = voting_classifier_,
+    #                 model_name = 'Voting_Classifier',
+    #                 should_log_parent_model = False,
+    #                 artifact_path = f'Voting_Classifier')
+        
+    #     mlflow_logger(data = data,
+    #                 model_name = 'Voting_Classifier',
+    #                 exp_id = exp_id_voting_clf,
+    #                 registered_model_name = f"Challenger_Voting_Classifier",
+    #                 artifact_path = None)
+        
+    #     vc_params = {}
+    #     vc_params['estimators'] = best_estimators
+    #     vc_params['voting'] = voting_classifier_.get_params()['voting']
+    #     vc_params['weights'] = voting_classifier_.get_params()['weights']
+    #     vc_params['n_jobs'] = voting_classifier_.get_params()['n_jobs']
+
+    #     report['Voting_Classifier'] = {}
+    #     report['Voting_Classifier']['Best_Cost'] = cost
+
+    #     report['Voting_Classifier']['Fittable_Params'] = vc_params
+############################################################ DEPRECATED ############################################################
+    voting_clf = VotingClassifier(estimators=best_estimators,
+                        n_jobs = -1,
+                        verbose = True)
+# Test with Voting_Classifier
+    y_pred_voting_clf = model_trainer_2(x_train = x_train, y_train = y_train,
+                                             x_test = x_test, y_test = y_test, model = voting_clf)
+    metrics_voting_clf = eval_metrics(y_true = y_test, y_pred = y_pred_voting_clf)
+    metrics_voting_clf['model'] = voting_clf
+    metrics_voting_clf['model_name'] = 'Voting_Classifier'
+
+# Log Voting_CLF in MLFlow
+    tags = {"metrics": "['Balanced_Accuracy_Score', 'F1_Score', 'Accuracy_Score', 'Cost']"}
+    exp_id_voting_clf = mlflow.create_experiment(name = f"{exp_count}_Voting_Classifier_{exp_count}", tags = tags)
     with mlflow.start_run(experiment_id = exp_id_voting_clf,
-                            run_name = f"Voting_Classifier",
-                            tags = {"run_type": "parent"}) as voting_clf_run:
-        # voting_clf_run_id = voting_clf_run.info.run_id
-        voting_classifier_ = VotingClassifier(estimators = best_estimators,
-                                                        voting = "hard",
-                                                        weights = None,
-                                                        n_jobs = -1,
-                                                        verbose = True)
-        voting_classifier_.fit(x_train,y_train)
-        y_pred = voting_classifier_.predict(x_test)
-        cost = eval_metrics(y_true = y_test, y_pred = y_pred)['Cost']
-        print(f"\nVoting Classifier Cost: {cost} \n")
-        data = (x_train, y_test, y_pred)
+                            run_name = f"Challenger {voting_clf.__class__.__name__}",
+                            tags = {'model' : 'Voting_Classifier',
+                                    "run_type": "parent",
+                                    "model_type" : "Challenger"}) as parent_run:
+        parent_run_id = parent_run.info.run_id
+        mlflow_logger(model = voting_clf,
+                        client = client, 
+                        model_name = 'Voting_Classifier',
+                        should_log_parent_model = False,
+                        artifact_path = f'candidate_Voting_Classifier')
         
-        mlflow_logger(data = data,
-                    model = voting_classifier_,
-                    model_name = 'Voting_Classifier',
-                    should_log_parent_model = False,
-                    artifact_path = f'Voting_Classifier')
+        mlflow.log_metrics(metrics = {"Accuracy_Score": metrics_voting_clf['Accuracy_Score']})
+        tags = {'model_type': "Challenger"}
+        mlflow_logger(client = client,
+                        model_name = 'Voting_Classifier',
+                        exp_id = exp_id_voting_clf,
+                        registered_model_name = f"Challenger Voting_Classifier",
+                        artifact_path = None,
+                        tags = tags)
         
-        mlflow_logger(data = data,
-                    model_name = 'Voting_Classifier',
-                    exp_id = exp_id_voting_clf,
-                    registered_model_name = f"Challenger_Voting_Classifier",
-                    artifact_path = None)
-        
-        vc_params = {}
-        vc_params['estimators'] = best_estimators
-        vc_params['voting'] = voting_classifier_.get_params()['voting']
-        vc_params['weights'] = voting_classifier_.get_params()['weights']
-        vc_params['n_jobs'] = voting_classifier_.get_params()['n_jobs']
+    return metrics_voting_clf, exp_id_voting_clf, y_pred_voting_clf, parent_run_id
 
-        report['Voting_Classifier'] = {}
-        report['Voting_Classifier']['Best_Cost'] = cost
-
-        report['Voting_Classifier']['Fittable_Params'] = vc_params
-
-    return report,exp_id_voting_clf
-
-def model_trainer(x_train : pd.DataFrame, y_train : pd.DataFrame, x_test : pd.DataFrame, y_test : pd.DataFrame,
-                  model_: ML_Model = None, 
-                  models: dict = None,
-                  params: dict = None,
-                  best_model_details: list[tuple] = None):
-    if models:
-        model_class = models[best_model_details[0][0]]
-        print(f"\nBest Model Details: {best_model_details}")
-        print("\nModel: ",model_class)
-        print("\nModels: ",models)
-        print(f"\nModel params: {best_model_details[0][2]}")
-        model = model_class(**best_model_details[0][2])
-    elif model:
-        model = model_(**params)
-        print("\nModel: ",model)
-    model.fit(x_train, y_train)
-    print(f"\nmodel_getparams(): {model.get_params()}\n")
-    y_pred = model.predict(x_test)
-    cost = eval_metrics(y_true = y_test, y_pred = y_pred)['Cost']
+def model_trainer(mlflow_experiment_id, client: MlflowClient,
+                  x_train : pd.DataFrame, y_train : pd.DataFrame, x_test : pd.DataFrame, y_test : pd.DataFrame,
+                  model: ML_Model = None, model_dict: dict = None,
+                #   models: dict = None,
+                  params: dict = None):
+                #   best_model_details: list[tuple] = None):
+############################################################ DEPRECATED ############################################################ 
+    # if models:
+    #     model_class = models[best_model_details[0][0]]
+    #     print(f"\nBest Model Details: {best_model_details}")
+    #     print("\nModel: ",model_class)
+    #     print("\nModels: ",models)
+    #     print(f"\nModel params: {best_model_details[0][2]}")
+    #     model = model_class(**best_model_details[0][2])
+    # elif model:
+    #     model = model_(**params)
+    #     print("\nModel: ",model)
+    # model.fit(x_train, y_train)
+    # print(f"\nmodel_getparams(): {model.get_params()}\n")
+    # y_pred = model.predict(x_test)
+    # cost = eval_metrics(y_true = y_test, y_pred = y_pred)['Cost']
+############################################################ DEPRECATED ############################################################
+    y_pred_final_estimator = model_trainer_2(x_train = x_train, y_train = y_train,
+                                             x_test = x_test, y_test = y_test, model = model)
     
-    return cost
+    metrics_final_estimator = eval_metrics(y_true = y_test, y_pred = y_pred_final_estimator)
+    metrics_final_estimator['model'] = model
+    metrics_final_estimator['model_name'] = list(model_dict.keys())[0]
+    run_id = 0
+
+    with mlflow.start_run(experiment_id = mlflow_experiment_id,
+                                run_name = f"Challenger {metrics_final_estimator['model'].__class__.__name__}",
+                                tags = {'model' : f"{metrics_final_estimator['model'].__class__.__name__}",
+                                    "run_type": "parent",
+                                    "model_type" : "Challenger"}) as final_estimator_run:
+            
+            mlflow.sklearn.log_model(sk_model = metrics_final_estimator['model'], 
+                                    artifact_path = f"challenger_{metrics_final_estimator['model'].__class__.__name__}")
+
+            run_id = final_estimator_run.info.run_id
+            tags = {'model_type': "Challenger"}          
+            artifact_path = client.list_artifacts(run_id = run_id)[0].path
+            print(f"\n\nArtifact Path: {artifact_path}\n\n")
+            artifact_uri = client.get_run(run_id).info.artifact_uri
+            source = artifact_uri+'/'+artifact_path
+
+            client.create_registered_model(name = f"Challenger {metrics_final_estimator['model'].__class__.__name__}",
+                                        description= "This model has been trained on the entire training dataset",
+                                        tags = tags)
+            client.create_model_version(name = f"Challenger {metrics_final_estimator['model'].__class__.__name__}",
+                                        source = source,
+                                        run_id = run_id)
+            
+            mlflow.log_metrics(eval_metrics(y_true = y_test, y_pred = y_pred_final_estimator))
+    
+    return metrics_final_estimator, y_pred_final_estimator, run_id
+
+def model_trainer_2(model, x_train : pd.DataFrame, y_train : pd.DataFrame, 
+                    x_test : pd.DataFrame, y_test : pd.DataFrame,
+                    params:dict = None):
+    if params:
+        model.set_params(**params)
+        model.fit(X = x_train, y = y_train)
+    else:
+        model.fit(X = x_train, y = y_train)
+    return (model.predict(X = x_test))
 
 def mlflow_logger(artifact_path: str, client : MlflowClient, metrics_: dict = None, data = None, 
                   model = None, model_name: str = None, is_tuning_complete: bool = False,
                   should_log_parent_model: bool = False, should_register_model:bool = False, 
-                  registered_model_name: str = None, 
+                  registered_model_name: str = None, tags: dict = None, 
                   run_id: str =  None, exp_id: int|list = None):
     if not artifact_path and should_register_model == False:
         # x_train = data
@@ -764,13 +970,18 @@ def mlflow_logger(artifact_path: str, client : MlflowClient, metrics_: dict = No
         print(f"\nBest_Run_ID: {best_run_id}")
         print(f"Best_Model's_Artifact_Path: {best_artifact_path}/{artifact_path_name}")
 
-        client.create_registered_model(name = registered_model_name)
+        if registered_model_name == 'Challenger Voting_Classifier' or registered_model_name == 'Challenger Stacked_Classifier':
+            description = "This model has been trained on the entire training dataset"
+        else: 
+            description = None
+
+        client.create_registered_model(name = registered_model_name, description = description, tags = tags)
         client.create_model_version(name = registered_model_name,
                                     source = f"{best_artifact_path}/{artifact_path_name}",
                                     run_id = best_run_id)
     
     elif not artifact_path and should_register_model == True:
-        print(f"Registering Best Model so far as {registered_model_name}")
+        # print(f"Registering Best Model so far as {registered_model_name}")
         parent_runs = mlflow.search_registered_models()
         print("Experiment IDs: ",exp_id)
         if is_tuning_complete == False:
@@ -786,20 +997,32 @@ def mlflow_logger(artifact_path: str, client : MlflowClient, metrics_: dict = No
         best_artifact = runs_df[runs_df['run_id'].isin(runs_list_)].sort_values(by = "metrics.Accuracy_Score", ascending=False).reset_index(drop=True)['artifact_uri'][0]
         artifact_path_name = client.list_artifacts(f'{best_run}')[0].path
         best_exp_id = runs_df[runs_df['run_id'] == best_run]['experiment_id'].values[0]
-        model_name = runs_df[runs_df['run_id'].isin(runs_list_)].sort_values(by = "metrics.Accuracy_Score", ascending=False).reset_index(drop=True)['tags.mlflow.runName'][0]
+        # model_name = runs_df[runs_df['run_id'].isin(runs_list_)].sort_values(by = "metrics.Accuracy_Score", ascending=False).reset_index(drop=True)['tags.mlflow.runName'][0]
+        model_name = json.loads(runs_df[runs_df['run_id'].isin(runs_list_)].sort_values(by = "metrics.Accuracy_Score", ascending=False).reset_index(drop=True)['tags.mlflow.log-model.history'][0])[0]['artifact_path']
         # model_name = model_name.replace("Optuna for ", "")
-        model_name = re.sub(r'_Trial_\d+', '', model_name)
-        if is_tuning_complete == False:
-            client.set_tag(best_run, "model_type", "Challenger")
-        client.create_registered_model(name = f"{registered_model_name} {model_name}",
-                                    tags = {"model_type": f"{registered_model_name}"},
-                                    description = f"{model_name} is a {registered_model_name} model")
         
-        client.create_model_version(name = f"{registered_model_name} {model_name}",
-                                    source = f"{best_artifact}/{artifact_path_name}",
-                                    run_id = best_run,
-                                    tags = {"model_type" : f"{registered_model_name}",
-                                            "model_name" : model_name})
+        # if is_tuning_complete == False:
+        #     client.set_tag(best_run, "model_type", "Challenger")
+        # if registered_model_name == "Best HP Tuned Candidate":
+        #     description = "This model has been trained on batches"
+        # else:
+        #     description = f"{model_name} is a {registered_model_name} model"
+        if is_tuning_complete == True:
+            model_name = re.sub(r'Challenger ', '', model_name)
+            client.create_registered_model(name = f"{registered_model_name} {model_name}",
+                                        tags = {"model_type": f"{registered_model_name}"},
+                                        description = description)
+            
+            client.create_model_version(name = f"{registered_model_name} {model_name}",
+                                        source = f"{best_artifact}/{artifact_path_name}",
+                                        run_id = best_run,
+                                        tags = {"model_type" : f"{registered_model_name}",
+                                                "model_name" : model_name})
+        else:
+            model_name = re.sub(r'candidate_', '', model_name)
+            client.set_registered_model_tag(name = f"{registered_model_name}{model_name}",
+                                            key = 'model_type',
+                                            value = 'Best_HP_Tuned_Candidate')
         return (best_exp_id)
 
     elif should_log_parent_model == True and should_register_model == False:
@@ -839,6 +1062,7 @@ def mlflow_logger(artifact_path: str, client : MlflowClient, metrics_: dict = No
             best_model = mlflow.lightgbm.load_model(f"{best_artifact_path}/{artifact_path_name}")
             mlflow.lightgbm.log_model(lgb_model = model,
                                       artifact_path = artifact_path)
+            params = client.get_run(best_run_id).data.params
         else:
             # print("Tracking URI: ",client.tracking_uri)
             # print("Registry URI: ",client._registry_uri)
@@ -882,40 +1106,31 @@ def mlflow_logger(artifact_path: str, client : MlflowClient, metrics_: dict = No
             if flag == 1:
                 clf_list = []
                 for i in range(len(best_model.get_params()['estimators'])):
-                    if best_model.get_params()['estimators'][i][0] != "XGB_Classifier":
-                        clf_list.append((best_model.get_params()['estimators'][i][0],best_model.get_params()['estimators'][i][1].__class__()))
+                    # if best_model.get_params()['estimators'][i][0] != "XGB_Classifier":
+                    clf_list.append((best_model.get_params()['estimators'][i][0],f"{best_model.get_params()['estimators'][i][1].__class__.__name__}()"))
                 
-                estimators_params = {}
-                for i in range(len(best_model.get_params()['estimators'])):
-                    estimators_params[best_model.get_params()['estimators'][i][0]] = best_model.get_params()['estimators'][i][1].get_params()
-                for i in estimators_params:
-                    estimators_params[i] = {key:value for key,value in estimators_params[i].items() if value is not None}
+                # estimators_params = {}
+                # for i in range(len(best_model.get_params()['estimators'])):
+                #     estimators_params[best_model.get_params()['estimators'][i][0]] = best_model.get_params()['estimators'][i][1].get_params()
+                # for i in estimators_params:
+                #     estimators_params[i] = {key:value for key,value in estimators_params[i].items() if value is not None}
                 
                 if model_name == "Stacked_Classifier":
-                    if best_model.get_params()['final_estimator'].__class__.__name__ == 'XGBClassifier':
-                            s_clf_params = {'estimators' : clf_list,
-                                            'final_estimator' : 'XGBClassifier()',
-                                            'cv' : best_model.get_params()['cv'],
-                                            'stack_method' : best_model.get_params()['stack_method'],
-                                            'passthrough' : best_model.get_params()['passthrough']}
-                            for key,value in estimators_params.items():
-                                s_clf_params[f"{key}_Params"] = value
-                    else:
-                        s_clf_params = {'estimators' : clf_list,
-                                'final_estimator' : best_model.get_params()['final_estimator'],
-                                'cv' : best_model.get_params()['cv'],
-                                'stack_method' : best_model.get_params()['stack_method'],
-                                'passthrough' : best_model.get_params()['passthrough']}
-                        for key,value in estimators_params.items():
-                                s_clf_params[f"{key}_Params"] = value
+                    s_clf_params = {'estimators' : clf_list,
+                                    'final_estimator' : f'{best_model.get_params()["final_estimator"].__class__.__name__}()',
+                                    'cv' : best_model.get_params()['cv'],
+                                    'stack_method' : best_model.get_params()['stack_method'],
+                                    'passthrough' : best_model.get_params()['passthrough']}
+                    # for key,value in estimators_params.items():
+                    #     s_clf_params[f"{key}_Params"] = value
 
                     print("Processed_NEW_S_CLF_Params: ",s_clf_params)
                     mlflow.log_params(params = s_clf_params)
 
                 elif model_name == "Voting_Classifier":
                     v_clf_params = {'estimators' : clf_list}
-                    for key,value in estimators_params.items():
-                        v_clf_params[f"{key}_Params"] = value
+                    # for key,value in estimators_params.items():
+                    #     v_clf_params[f"{key}_Params"] = value
                     print("Processed_NEW_V_CLF_Params: ",v_clf_params)
                     mlflow.log_params(params = v_clf_params)
 
@@ -924,27 +1139,27 @@ def mlflow_logger(artifact_path: str, client : MlflowClient, metrics_: dict = No
                 for i in range(len(best_model.get_params()['estimators'])):
                     clf_list.append((best_model.get_params()['estimators'][i][0],best_model.get_params()['estimators'][i][1].__class__()))
                 
-                estimators_params = {}
-                for i in range(len(best_model.get_params()['estimators'])):
-                        estimators_params[best_model.get_params()['estimators'][i][0]] = best_model.get_params()['estimators'][i][1].get_params()
-                for i in estimators_params:
-                        estimators_params[i] = {key:value for key,value in estimators_params[i].items() if value is not None}
+                # estimators_params = {}
+                # for i in range(len(best_model.get_params()['estimators'])):
+                #         estimators_params[best_model.get_params()['estimators'][i][0]] = best_model.get_params()['estimators'][i][1].get_params()
+                # for i in estimators_params:
+                #         estimators_params[i] = {key:value for key,value in estimators_params[i].items() if value is not None}
 
                 if model_name == "Stacked_Classifier":
                     s_clf_params = {'estimators' : clf_list,
-                                    'final_estimator' : best_model.get_params()['final_estimator'],
+                                    'final_estimator' : f'{best_model.get_params()["final_estimator"].__class__.__name__}()',
                                     'cv' : best_model.get_params()['cv'],
                                     'stack_method' : best_model.get_params()['stack_method'],
                                     'passthrough' : best_model.get_params()['passthrough']}
-                    for key,value in estimators_params.items():
-                            s_clf_params[f"{key}_params"] = value
+                    # for key,value in estimators_params.items():
+                    #         s_clf_params[f"{key}_params"] = value
                     print("Processed_NEW_S_CLF_Params: ",s_clf_params)
                     mlflow.log_params(params = s_clf_params)
                     
                 elif model_name == "Voting_Classifier":
                     v_clf_params = {'estimators' : clf_list}
-                    for key,value in estimators_params.items():
-                        v_clf_params[f"{key}_Params"] = value
+                    # for key,value in estimators_params.items():
+                    #     v_clf_params[f"{key}_Params"] = value
                     print("Processed_NEW_V_CLF_Params: ",v_clf_params)
                     mlflow.log_params(params = v_clf_params)
 
@@ -985,40 +1200,31 @@ def mlflow_logger(artifact_path: str, client : MlflowClient, metrics_: dict = No
             if flag == 1:
                 clf_list = []
                 for i in range(len(model.get_params()['estimators'])):
-                    if model.get_params()['estimators'][i][0] != "XGB_Classifier":
-                        clf_list.append((model.get_params()['estimators'][i][0],model.get_params()['estimators'][i][1].__class__()))
+                    # if model.get_params()['estimators'][i][0] != "XGB_Classifier":
+                    clf_list.append((model.get_params()['estimators'][i][0],f"{model.get_params()['estimators'][i][1].__class__.__name__}()"))
                 
-                estimators_params = {}
-                for i in range(len(model.get_params()['estimators'])):
-                    estimators_params[model.get_params()['estimators'][i][0]] = model.get_params()['estimators'][i][1].get_params()
-                for i in estimators_params:
-                    estimators_params[i] = {key:value for key,value in estimators_params[i].items() if value is not None}
+                # estimators_params = {}
+                # for i in range(len(model.get_params()['estimators'])):
+                #     estimators_params[model.get_params()['estimators'][i][0]] = model.get_params()['estimators'][i][1].get_params()
+                # for i in estimators_params:
+                #     estimators_params[i] = {key:value for key,value in estimators_params[i].items() if value is not None}
                 
                 if model_name == "Stacked_Classifier":
-                    if model.get_params()['final_estimator'].__class__.__name__ == 'XGBClassifier':
-                            s_clf_params = {'estimators' : clf_list,
-                                            'final_estimator' : 'XGBClassifier()',
-                                            'cv' : model.get_params()['cv'],
-                                            'stack_method' : model.get_params()['stack_method'],
-                                            'passthrough' : model.get_params()['passthrough']}
-                            for key,value in estimators_params.items():
-                                s_clf_params[f"{key}_Params"] = value
-                    else:
-                        s_clf_params = {'estimators' : clf_list,
-                                'final_estimator' : model.get_params()['final_estimator'],
-                                'cv' : model.get_params()['cv'],
-                                'stack_method' : model.get_params()['stack_method'],
-                                'passthrough' : model.get_params()['passthrough']}
-                        for key,value in estimators_params.items():
-                                s_clf_params[f"{key}_Params"] = value
+                    s_clf_params = {'estimators' : clf_list,
+                                    'final_estimator' : f'{model.get_params()["final_estimator"].__class__.__name__}()',
+                                    'cv' : model.get_params()['cv'],
+                                    'stack_method' : model.get_params()['stack_method'],
+                                    'passthrough' : model.get_params()['passthrough']}
+                    # for key,value in estimators_params.items():
+                    #     s_clf_params[f"{key}_Params"] = value
 
                     print("Processed_NEW_S_CLF_Params: ",s_clf_params)
                     mlflow.log_params(params = s_clf_params)
 
                 elif model_name == "Voting_Classifier":
                     v_clf_params = {'estimators' : clf_list}
-                    for key,value in estimators_params.items():
-                        v_clf_params[f"{key}_Params"] = value
+                    # for key,value in estimators_params.items():
+                    #     v_clf_params[f"{key}_Params"] = value
                     print("Processed_NEW_V_CLF_Params: ",v_clf_params)
                     mlflow.log_params(params = v_clf_params)
 
@@ -1027,27 +1233,27 @@ def mlflow_logger(artifact_path: str, client : MlflowClient, metrics_: dict = No
                 for i in range(len(model.get_params()['estimators'])):
                     clf_list.append((model.get_params()['estimators'][i][0],model.get_params()['estimators'][i][1].__class__()))
                 
-                estimators_params = {}
-                for i in range(len(model.get_params()['estimators'])):
-                        estimators_params[model.get_params()['estimators'][i][0]] = model.get_params()['estimators'][i][1].get_params()
-                for i in estimators_params:
-                        estimators_params[i] = {key:value for key,value in estimators_params[i].items() if value is not None}
+                # estimators_params = {}
+                # for i in range(len(model.get_params()['estimators'])):
+                #         estimators_params[model.get_params()['estimators'][i][0]] = model.get_params()['estimators'][i][1].get_params()
+                # for i in estimators_params:
+                #         estimators_params[i] = {key:value for key,value in estimators_params[i].items() if value is not None}
 
                 if model_name == "Stacked_Classifier":
                     s_clf_params = {'estimators' : clf_list,
-                                    'final_estimator' : model.get_params()['final_estimator'],
+                                    'final_estimator' : f'{model.get_params()["final_estimator"].__class__.__name__}()',
                                     'cv' : model.get_params()['cv'],
                                     'stack_method' : model.get_params()['stack_method'],
                                     'passthrough' : model.get_params()['passthrough']}
-                    for key,value in estimators_params.items():
-                            s_clf_params[f"{key}_params"] = value
+                    # for key,value in estimators_params.items():
+                    #         s_clf_params[f"{key}_params"] = value
                     print("Processed_NEW_S_CLF_Params: ",s_clf_params)
                     mlflow.log_params(params = s_clf_params)
                     
                 elif model_name == "Voting_Classifier":
                     v_clf_params = {'estimators' : clf_list}
-                    for key,value in estimators_params.items():
-                        v_clf_params[f"{key}_Params"] = value
+                    # for key,value in estimators_params.items():
+                    #     v_clf_params[f"{key}_Params"] = value
                     print("Processed_NEW_V_CLF_Params: ",v_clf_params)
                     mlflow.log_params(params = v_clf_params)
 
@@ -1114,6 +1320,7 @@ def batch_data_create(data: pd.DataFrame):
 
     return batch_list
 
+############################################################ DEPRECATED ############################################################
 def params_extractor(data: pd.DataFrame):
 
     params_yaml = load_yaml(PARAMS_PATH)
@@ -1131,6 +1338,7 @@ def params_extractor(data: pd.DataFrame):
             params[i]['accuracy_value'] = data[params_name][data[params_name]['Model_name'] == i]['value'].values.tolist()
     
     return (params)
+############################################################ DEPRECATED ############################################################
 
 def params_evaluator(sample_params: dict):
     # sample_params = client.get_run('cd460708497e4677a2cdcadeaefd8878').data.params

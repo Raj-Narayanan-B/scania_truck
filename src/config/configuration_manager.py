@@ -7,11 +7,11 @@ from src.entity.entity_config import (DataIngestionConf,
                                       DataSplitConf,
                                       ModelTrainerConf,
                                       ModelMetricsConf)
-from src.utils import load_yaml,mk_dir
+from src.utils import load_yaml
 
 class ConfigurationManager:
     def __init__(self,
-                 config = CONFIG_PATH,
+                 config = CONFIG_PATH,  
                  params = PARAMS_PATH,
                  schema = SCHEMA_PATH
                  ):

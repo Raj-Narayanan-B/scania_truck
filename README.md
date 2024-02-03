@@ -4,6 +4,20 @@ Things to include finally -
     * Hyper-Param training using Optuna and HyperOpt
     * Use DVC to monitor data stored in gdrive
     * Use MLFLOW to track model performance
+    * use Pytest to create unit tests
+    * Use tox to automate testing
+    * Use Docker to finally encapsulate the entire process
+    * Use GitHub Actions (.github/workflows) to run in github
+
+Basic_setup:
+- Check Dataset size
+- 
+- Astra DataBase Variables
+- 
+- Data Validation
+    * Check d_types
+    * Check column names
+    
 
 Logistic_Regression:
 SGD_Classifier:

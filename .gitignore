@@ -181,3 +181,4 @@ notebooks/mlruns/
 mlruns/
 stacked_classifier_params.txt
 artifacts/model/hp_tuned_model/
+sample_model.joblib
