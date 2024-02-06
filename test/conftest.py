@@ -1,11 +1,10 @@
 import pytest
-from unittest.mock import patch #type: ignore
-import pandas as pd
-from src.utils import (stage_1_processing_function, load_yaml, 
-                       stage_2_processing_function, make_synthetic_data_for_unit_testing)
-from src.constants import SCHEMA_PATH
-from pathlib import Path #type: ignore
+import random #type: ignore
+import numpy as np
 import os
+from src.utils import (stage_1_processing_function, schema_saver, load_yaml,
+                       stage_2_processing_function, make_synthetic_data_for_unit_testing)
+import tempfile #type: ignore
 
 @pytest.fixture
 def data_dynamic_threshold():
@@ -17,7 +16,7 @@ def data_dynamic_threshold():
 @pytest.fixture
 def data_load_yaml(request):
     yield (request.param)
-
+        
 @pytest.fixture
 def data_stage_1():
     schema = ['aa_000', 'ab_000', 'ac_000', 'ad_000', 'ae_000', 'af_000', 'ag_000', 'ag_001',
@@ -54,10 +53,26 @@ def data_stage_1():
 def data_stage_2(data_stage_1):
     dataframe,schema = data_stage_1
     processed_df = stage_2_processing_function(dataframe.iloc[:5000,:])
-
     yield (processed_df)
 
     del processed_df
+
+@pytest.fixture
+def schema_saver_fixture(data_stage_2):
+    with tempfile.NamedTemporaryFile() as file:
+        filepath = file.name+'.yaml'
+        yield filepath, data_stage_2
+        try:
+            os.remove(filepath)
+        except:
+            pass
+
+@pytest.fixture
+def eval_metrics_tester():
+    y_test_random = np.array([random.randint(0, 1) for _ in range(50)])
+    y_pred_random = np.array([random.randint(0, 1) for _ in range(50)])
+    yield y_test_random,y_pred_random
+
 
 
 

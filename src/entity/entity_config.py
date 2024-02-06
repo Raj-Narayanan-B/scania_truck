@@ -1,5 +1,5 @@
-from dataclasses import dataclass #type: ignore
-from pathlib import Path #type: ignore
+from dataclasses import dataclass  # type: ignore
+from pathlib import Path  # type: ignore
 
 
 @dataclass(frozen=True)
@@ -39,8 +39,9 @@ class DataIngestionConf:
     test_data_3_key_space: str
     test_data_3_table: str
     test_data_3_path: Path
-    
+
     root_directory: Path
+
 
 @dataclass(frozen=True)
 class DataPathConf:
@@ -51,11 +52,13 @@ class DataPathConf:
     test_data2: Path
     test_data3: Path
 
+
 @dataclass(frozen=True)
 class Stage1ProcessingConf:
     root_dir: Path
     train_data_path: Path
     test_data_path: Path
+
 
 @dataclass(frozen=True)
 class Stage2ProcessingConf:
@@ -63,11 +66,13 @@ class Stage2ProcessingConf:
     train_data_path: Path
     test_data_path: Path
 
+
 @dataclass(frozen=True)
 class DataSplitConf:
     root_dir: Path
     train_path: Path
     test_path: Path
+
 
 @dataclass(frozen=True)
 class ModelTrainerConf:
@@ -75,16 +80,15 @@ class ModelTrainerConf:
     model_path: str
     hp_model_path: Path
 
+
 @dataclass(frozen=True)
 class ModelMetricsConf:
     root_dir: Path
     metrics: Path
     best_metric: Path
 
+
 @dataclass(frozen=True)
 class PreprocessorConf:
     root_dir: Path
     preprocessor_path: str
-
-
-

@@ -1,4 +1,3 @@
-from src.config.configuration_manager import ConfigurationManager
 from src.entity.entity_config import DataSplitConf, Stage1ProcessingConf
 from src.utils import train_test_splitter
 import pandas as pd
@@ -14,24 +13,24 @@ class data_splitting_component:
     def data_splitting(self, *args):
         if args:
             self.size = args[0]
-            print ("Size: ",self.size)    
-            df = pd.read_csv(self.stage1_processor_config.train_data_path).iloc[:self.size,:]
-            train_data_training_set,train_data_testing_set = train_test_splitter(df)
-            print ("Pre_train_data shape: ",train_data_training_set.shape,
-                "\nPre_test_data shape: ",train_data_testing_set.shape)
-            return (train_data_training_set,train_data_testing_set)
+            print("Size: ", self.size)
+            df = pd.read_csv(self.stage1_processor_config.train_data_path).iloc[:self.size, :]
+            train_data_training_set, train_data_testing_set = train_test_splitter(df)
+            print("Pre_train_data shape: ", train_data_training_set.shape,
+                  "\nPre_test_data shape: ", train_data_testing_set.shape)
+            return (train_data_training_set, train_data_testing_set)
         else:
             self.size = None
-            print ("Size: Full")    
-            df = pd.read_csv(self.stage1_processor_config.train_data_path).iloc[:self.size,:]
-            train_data_training_set,train_data_testing_set = train_test_splitter(df)
-            print ("Pre_train_data shape: ",train_data_training_set.shape,
-                "\nPre_test_data shape: ",train_data_testing_set.shape)
+            print("Size: Full")
+            df = pd.read_csv(self.stage1_processor_config.train_data_path).iloc[:self.size, :]
+            train_data_training_set, train_data_testing_set = train_test_splitter(df)
+            print("Pre_train_data shape: ", train_data_training_set.shape,
+                  "\nPre_test_data shape: ", train_data_testing_set.shape)
 
-            train_data_training_set.to_csv(self.split_config.train_path,index=False)
-            train_data_testing_set.to_csv(self.split_config.test_path,index=False)
+            train_data_training_set.to_csv(self.split_config.train_path, index=False)
+            train_data_testing_set.to_csv(self.split_config.test_path, index=False)
 
-            return (train_data_training_set,train_data_testing_set)
+            return (train_data_training_set, train_data_testing_set)
 
 # obj = ConfigurationManager()
 # stage_1_obj = obj.get_stage1_processing_config()
