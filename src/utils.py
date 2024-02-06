@@ -37,7 +37,6 @@ ML_Model = NewType('Machine_Learning_Model', object)
 
 w.filterwarnings('ignore')
 
-
 # from catboost import CatBoostClassifier
 
 # import ruamel.yaml as yaml
