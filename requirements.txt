@@ -31,7 +31,7 @@ lightgbm
 # catboost
 imbalanced-learn
 cassandra-driver
-geomet>=0.1,<0.3
+geomet
 requests
 beautifulsoup4
 -e .

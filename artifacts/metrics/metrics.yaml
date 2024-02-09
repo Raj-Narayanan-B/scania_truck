@@ -1,15 +1,15 @@
 LGBMClassifier:
-    Accuracy_Score: 0.9548731551384071
-    Balanced_Accuracy_Score: 0.9548731551384071
-    Cost: 508170.0
-    F1_Score: 0.9537840002786194
+    Accuracy_Score: 0.9631367748078623
+    Balanced_Accuracy_Score: 0.9631367748078623
+    Cost: 419500.0
+    F1_Score: 0.962389841093609
 Stacking_Classifier:
-    Accuracy_Score: 0.9577637216894511
-    Balanced_Accuracy_Score: 0.9577637216894512
-    Cost: 596010.0
-    F1_Score: 0.9560602844406708
+    Accuracy_Score: 0.26783649595320685
+    Balanced_Accuracy_Score: 0.2678364959532068
+    Cost: 6515230.0
+    F1_Score: 0.14638014431845214
 Voting_Classifier:
-    Accuracy_Score: 0.9793579541590152
-    Balanced_Accuracy_Score: 0.9793579541590152
-    Cost: 250090.0
-    F1_Score: 0.9790812282455112
+    Accuracy_Score: 0.979085900836564
+    Balanced_Accuracy_Score: 0.979085900836564
+    Cost: 246250.0
+    F1_Score: 0.9788230432836335

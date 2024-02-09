@@ -1,79 +1,92 @@
 stages:
-  pip_requirements:
-    cmd: python pip_install.py
-  # data_ingestion:
-  #   cmd: python src/components/1_data_ingestion.py
-  #   deps:
-  #     - src/utils.py
-  #     - src/config/configuration_manager.py
-  #     - src/entity/entity_config.py
-  #     - Secrets/Bundles/secure-connect-scania-truck-failure-1.zip
-  #     - Secrets/Bundles/secure-connect-scania-truck-failure-train-2.zip
-  #     - Secrets/Bundles/secure-connect-scania-truck-failure-train-3.zip
-  #     - Secrets/Bundles/Test Data Bundles/secure-connect-scania-truck-failure-test1.zip
-  #     - Secrets/Bundles/Test Data Bundles/secure-connect-scania-truck-failure-test2.zip
-  #     - Secrets/Bundles/Test Data Bundles/secure-connect-scania-truck-failure-test3.zip
-  #     - Secrets/Tokens/scania_truck_failure_1-token.json
-  #     - Secrets/Tokens/scania_truck_failure_train_2-token.json
-  #     - Secrets/Tokens/scania_truck_failure_train_3-token.json
-  #     - Secrets/Tokens/Test Data Tokens/scania_truck_failure_test1-token.json
-  #     - Secrets/Tokens/Test Data Tokens/scania_truck_failure_test2-token.json
-  #     - Secrets/Tokens/Test Data Tokens/scania_truck_failure_test3-token.json
-  #   outs:
-  #     - artifacts/data/raw/train_data_1.csv
-  #     - artifacts/data/raw/train_data_2.csv
-  #     - artifacts/data/raw/train_data_3.csv
-  #     - artifacts/data/raw/test_data_1.csv
-  #     - artifacts/data/raw/test_data_2.csv
-  #     - artifacts/data/raw/test_data_3.csv
-  
-  stage_1_processing:
-    cmd: python src/components/2_stage_1_preprocessing.py
-    deps: 
-      - src/components/1_data_ingestion.py
+  # pip_requirements:
+  #   cmd: pip install -r requirements.txt
+
+  data_ingestion:
+    cmd: python src/pipeline/training_pipeline.py training_pipeline_obj.training_pipeline.data_ingestion
+    deps:
+      - Secrets/Bundles/secure-connect-scania-truck-failure-1.zip
+      - Secrets/Bundles/secure-connect-scania-truck-failure-train-2.zip
+      - Secrets/Bundles/secure-connect-scania-truck-failure-train-3.zip
+      - Secrets/Bundles/Test Data Bundles/secure-connect-scania-truck-failure-test1.zip
+      - Secrets/Bundles/Test Data Bundles/secure-connect-scania-truck-failure-test2.zip
+      - Secrets/Bundles/Test Data Bundles/secure-connect-scania-truck-failure-test3.zip
+      - Secrets/Tokens/scania_truck_failure_1-token.json
+      - Secrets/Tokens/scania_truck_failure_train_2-token.json
+      - Secrets/Tokens/scania_truck_failure_train_3-token.json
+      - Secrets/Tokens/Test Data Tokens/scania_truck_failure_test1-token.json
+      - Secrets/Tokens/Test Data Tokens/scania_truck_failure_test2-token.json
+      - Secrets/Tokens/Test Data Tokens/scania_truck_failure_test3-token.json
+    outs:
       - artifacts/data/raw/train_data_1.csv
       - artifacts/data/raw/train_data_2.csv
       - artifacts/data/raw/train_data_3.csv
       - artifacts/data/raw/test_data_1.csv
       - artifacts/data/raw/test_data_2.csv
       - artifacts/data/raw/test_data_3.csv
-    outs: 
+
+  stage_1_processing:
+    cmd: python src/pipeline/training_pipeline.py training_pipeline_obj.training_pipeline.initial_processing
+    deps:
+      - artifacts/data/raw/train_data_1.csv
+      - artifacts/data/raw/train_data_2.csv
+      - artifacts/data/raw/train_data_3.csv
+      - artifacts/data/raw/test_data_1.csv
+      - artifacts/data/raw/test_data_2.csv
+      - artifacts/data/raw/test_data_3.csv
+    outs:
       - artifacts/data/processed/stage_1_processing/preprocessed_test_data.csv
       - artifacts/data/processed/stage_1_processing/preprocessed_train_data.csv
 
   data_splitting:
-    cmd: python src/components/3_data_split.py
-    deps: 
-      - src/components/2_stage_1_preprocessing.py
+    cmd: python src/pipeline/training_pipeline.py training_pipeline_obj.training_pipeline.data_splitting
+    deps:
       - artifacts/data/processed/stage_1_processing/preprocessed_train_data.csv
     outs:
       - artifacts/data/train_test/train.csv
       - artifacts/data/train_test/test.csv
 
   stage_2_processing:
-    cmd: python src/components/4_stage_2_preprocessing.py
+    cmd: python src/pipeline/training_pipeline.py training_pipeline_obj.training_pipeline.final_processing
     deps:
-      - src/components/3_data_split.py
       - artifacts/data/train_test/train.csv
       - artifacts/data/train_test/test.csv
-    outs: 
+    outs:
       - artifacts/data/processed/stage_2_processing/processed_train_data.csv
       - artifacts/data/processed/stage_2_processing/processed_test_data.csv
+      - artifacts/preprocessor/preprocessor.joblib
 
-  model_trainer:
-    cmd: python src/components/5_model_training.py
+  model_tuning_tracking_training:
+    cmd: python src/pipeline/training_pipeline.py training_pipeline_obj.training_pipeline.models_tuning
     deps:
-      - src/components/4_stage_2_preprocessing.py
       - artifacts/data/processed/stage_2_processing/processed_train_data.csv
       - artifacts/data/processed/stage_2_processing/processed_test_data.csv
-    # outs:
-    #   - artifacts/model/model.joblib
+    # metrics:
+    #   - artifacts/metrics/metrics.yaml
+    # params:
+    #   - artifacts/model/model_sources.yaml
+    outs:
+      - artifacts/metrics/model_trial_study_df.csv
+      - artifacts/metrics/metrics.yaml
+      - artifacts/model/hp_tuned_model/voting_classifier.joblib
+      - artifacts/model/hp_tuned_model/stacking_classifier.joblib
+      - artifacts/model/hp_tuned_model/final_estimator.joblib
 
-  # test_data_prediction:
-  #   cmd: python src/components/7_original_testdata_prediction.py
-  #   deps:
-  #     - src/components/5_model_training.py
-  #     - artifacts/model/model.joblib
-  #     - artifacts/preprocessor/preprocessor.joblib
-  #     - artifacts/data/processed/stage_1_processing/preprocessed_test_data.csv
-
+  test_data_prediction:
+    cmd: python src/pipeline/training_pipeline.py training_pipeline_obj.training_pipeline.model_training
+    # params:
+    #   - artifacts/model/model_sources.yaml
+    deps:
+      - artifacts/model/hp_tuned_model/voting_classifier.joblib
+      - artifacts/model/hp_tuned_model/stacking_classifier.joblib
+      - artifacts/model/hp_tuned_model/final_estimator.joblib
+      - schema.yaml
+      - artifacts/preprocessor/preprocessor.joblib
+      - artifacts/data/processed/stage_1_processing/preprocessed_test_data.csv
+    # metrics:
+    #   - artifacts/metrics/best_metric.yaml
+    outs:
+      - artifacts/model/champion_model.joblib
+      - artifacts/data/final_testing_data_and_predicted_data/transformed_test_df.csv
+      - artifacts/data/final_testing_data_and_predicted_data/predictions.csv
+      - artifacts/metrics/best_metric.yaml

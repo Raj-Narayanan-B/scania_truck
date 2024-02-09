@@ -184,3 +184,4 @@ artifacts/model/hp_tuned_model/
 sample_model.joblib
 artifacts/data/transformed_test_df.csv
 preprocessor.joblib
+sample.yaml

@@ -1,57 +1,36 @@
 import pandas as pd
-# exp_count = 276
+# import mlflow
 from src.utils import (parameter_tuning_2, model_trainer, best_model_finder,
                        eval_metrics, save_yaml, voting_clf_trainer, stacking_clf_trainer)
 
-from src.entity.entity_config import (Stage2ProcessingConf,
-                                      ModelMetricsConf,
-                                      ModelTrainerConf,
-                                      PreprocessorConf,
-                                      DataSplitConf,
-                                      Stage1ProcessingConf)
+from src.components.stage_4_final_preprocessing import stage_4_final_processing_component
 from src import logger
 
-from sklearn.linear_model import LogisticRegression, SGDClassifier
-from sklearn.ensemble import (RandomForestClassifier, AdaBoostClassifier,
+from sklearn.linear_model import LogisticRegression, SGDClassifier  # noqa
+from sklearn.ensemble import (RandomForestClassifier, AdaBoostClassifier,  # noqa
                               GradientBoostingClassifier, BaggingClassifier, ExtraTreesClassifier,
                               HistGradientBoostingClassifier)
-from sklearn.tree import DecisionTreeClassifier
-from xgboost import XGBClassifier
-from lightgbm import LGBMClassifier
-# from catboost import CatBoostClassifier
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier  # noqa
+from xgboost import XGBClassifier  # noqa
+from lightgbm import LGBMClassifier  # noqa
+from sklearn.neighbors import KNeighborsClassifier  # noqa
 
 from mlflow.client import MlflowClient
 
 
-class model_tuning_tracking_component:
-    def __init__(self,
-                 stage_2_conf: Stage2ProcessingConf,
-                 metrics_conf: ModelMetricsConf,
-                 model_conf: ModelTrainerConf,
-                 preprocessor_conf: PreprocessorConf,
-                 data_split_conf: DataSplitConf,
-                 stage1_processor_conf: Stage1ProcessingConf) -> None:
-        self.stage_2_config = stage_2_conf
-        self.metrics_config = metrics_conf
-        self.preprocessor_config = preprocessor_conf
-        self.model_config = model_conf
-        self.split_config = data_split_conf
-        self.stage1_processor_config = stage1_processor_conf
+class model_tuning_tracking_component(stage_4_final_processing_component):
+    def __init__(self):
+        super().__init__()
+        self.stage_2_config = self.get_stage2_processing_config()
+        self.metrics_config = self.get_metric_config()
+        self.preprocessor_config = self.get_preprocessor_config()
+        self.model_config = self.get_model_config()
+        self.split_config = self.get_data_split_config()
+        self.stage1_processor_config = self.get_stage1_processing_config()
 
     def models_tuning(self):
         logger.info("loading training and testing datasets")
-        # size = 2000 #################CHANGED
-
-        # stage_3_data_split_obj = data_splitting_component(data_split_conf = self.split_config,
-        #                                                   stage1_processor_conf = self.stage1_processor_config)
-        # train_data_training_set,train_data_testing_set = stage_3_data_split_obj.data_splitting(size)#################CHANGED
-
-        # stage_4_final_processing_obj = stage_4_final_processing_component(data_split_conf = self.split_config,
-        #                                                                   stage_2_processor_conf = self.stage_2_config,
-        #                                                                   preprocessor_conf = self.preprocessor_config)
-        # train_df, test_df = stage_4_final_processing_obj.final_processing(train_data_training_set,train_data_testing_set) #################CHANGED
-
+        params = self.params_path
         train_df = pd.read_csv(self.stage_2_config.train_data_path)
         test_df = pd.read_csv(self.stage_2_config.test_data_path)  # CHANGED
 
@@ -64,19 +43,21 @@ class model_tuning_tracking_component:
 
         dataframe = pd.read_csv(self.stage1_processor_config.train_data_path)
 
-        models = {'Logistic_Regression': LogisticRegression,
-                  'SGD_Classifier': SGDClassifier,
-                  'Random Forest': RandomForestClassifier,
-                  'Ada_Boost': AdaBoostClassifier,
-                  'Grad_Boost': GradientBoostingClassifier,
-                  'Bagging_Classifier': BaggingClassifier,
-                  'ExtraTreesClassifier': ExtraTreesClassifier,
-                  'Hist_Grad_Boost_Classifier': HistGradientBoostingClassifier,
-                  'Decision_Tree_Classifier': DecisionTreeClassifier,
-                  'XGB_Classifier': XGBClassifier,
-                  'Light_GBM': LGBMClassifier,
-                  'KNN_Classifier': KNeighborsClassifier,
-                  }
+        # models = {'Logistic_Regression': LogisticRegression,
+        #           'SGD_Classifier': SGDClassifier,
+        #           'Random Forest': RandomForestClassifier,
+        #           'Ada_Boost': AdaBoostClassifier,
+        #           'Grad_Boost': GradientBoostingClassifier,
+        #           'Light_GBM': LGBMClassifier,
+        #           'Bagging_Classifier': BaggingClassifier,
+        #           'ExtraTreesClassifier': ExtraTreesClassifier,
+        #           'Hist_Grad_Boost_Classifier': HistGradientBoostingClassifier,
+        #           'Decision_Tree_Classifier': DecisionTreeClassifier,
+        #           'XGB_Classifier': XGBClassifier,
+        #           'KNN_Classifier': KNeighborsClassifier,
+        #           }
+        models = {key: eval(value) for key, value in params['models'].items()}
+
         logger.info("Commencing models' Hyper_Parameter Tuning")
         optuna_study_df, exp_id_list, model_accuracies, best_exp_id = parameter_tuning_2(models=models,  # CHANGED
                                                                                          client=client,
@@ -112,10 +93,17 @@ class model_tuning_tracking_component:
 
         # best_accuracy = max([metrics_voting_clf['Accuracy_Score'], metrics_stacking_clf['Accuracy_Score'], metrics_final_estimator['Accuracy_Score']])
 
-        print(
-            f"\nMetrics are: \n***************************\nStacking_CLF:\n{metrics_stacking_clf['Accuracy_Score']}\n**************************\nVoting_CLF:\n\
-                {metrics_voting_clf['Accuracy_Score']}\n**************************\n{metrics_final_estimator['model'].__class__.__name__}:\n{metrics_final_estimator['Accuracy_Score']}\n\
-                    **************************\n")
+        print(f"\nMetrics are: \n***************************\nStacking_CLF:\n{metrics_stacking_clf['Accuracy_Score']}\n**************************\nVoting_CLF:\n{metrics_voting_clf['Accuracy_Score']}\n**************************\n{metrics_final_estimator['model'].__class__.__name__}:\n{metrics_final_estimator['Accuracy_Score']}\n**************************\n")  # noqa
+
+        # sources = {}
+        # for i in range(3):
+        #     model_name = mlflow.search_registered_models(filter_string="tags.model_type ilike 'Challenger'")[i].name
+        #     if model_name != 'Challenger Stacked_Classifier' and model_name != 'Challenger Voting_Classifier':
+        #         model_name = 'Final_Estimator'
+        #     else:
+        #         model_name = model_name.replace(" ", "_")
+        #     sources[model_name] = mlflow.search_registered_models(filter_string="tags.model_type ilike 'Challenger'")[i].latest_versions[0].source + "/model.pkl"
+        # save_yaml(file=sources, filepath=r'params.yaml', mode='a')
 
         report = {}
         report['Stacking_Classifier'] = eval_metrics(y_true=y_test, y_pred=y_pred_stacking_clf)
@@ -124,6 +112,11 @@ class model_tuning_tracking_component:
 
         logger.info(f"Saving metrics.yaml file at {self.metrics_config.metrics}")
         save_yaml(file=report, filepath=self.metrics_config.metrics)
+
+        # models_source = {"final_estimator": self.model_config.final_estimator_path,
+        #                  'stacking_classifier': self.model_config.stacking_classifier_path,
+        #                  'voting_classifier': self.model_config.voting_classifier_path}
+        # save_yaml(file=models_source, filepath=r'artifacts\model\models_source.yaml')
 
 
 # conf_obj = ConfigurationManager()
@@ -134,10 +127,5 @@ class model_tuning_tracking_component:
 # preprocessor_obj = conf_obj.get_preprocessor_config()
 # stage_1_obj = conf_obj.get_stage1_processing_config()
 
-# obj = model_tuning_tracking_component(stage_2_conf = stage_2_obj,
-#                                       metrics_conf = model_metrics_obj,
-#                                       model_conf = model_config_obj,
-#                                       preprocessor_conf = preprocessor_obj,
-#                                       data_split_conf = data_split_obj,
-#                                       stage1_processor_conf = stage_1_obj)
+# obj = model_tuning_tracking_component()
 # obj.models_tuning()

@@ -18,9 +18,17 @@ from sklearn.model_selection import train_test_split
 from imblearn.combine import SMOTETomek
 from sklearn.preprocessing import RobustScaler
 from sklearn.impute import KNNImputer
+from sklearn.linear_model import LogisticRegression, SGDClassifier  # noqa
+from sklearn.ensemble import (RandomForestClassifier, AdaBoostClassifier,  # noqa
+                              GradientBoostingClassifier, BaggingClassifier, ExtraTreesClassifier,
+                              HistGradientBoostingClassifier)  # noqa
+from sklearn.tree import DecisionTreeClassifier  # noqa
+from xgboost import XGBClassifier  # noqa
+from lightgbm import LGBMClassifier  # noqa
+from sklearn.neighbors import KNeighborsClassifier  # noqa
 from sklearn.datasets import make_classification
 from cassandra.auth import PlainTextAuthProvider
-from cassandra.cluster import Cluster
+from cassandra.cluster import Cluster, ExecutionProfile, EXEC_PROFILE_DEFAULT
 import json
 from src.constants import PARAMS_PATH
 from src import logger
@@ -32,18 +40,11 @@ from box import ConfigBox
 from pathlib import Path  # type: ignore
 import numpy as np
 import pandas as pd
-exp_count = 282
+exp_count = 290
 ML_Model = NewType('Machine_Learning_Model', object)
 
 w.filterwarnings('ignore')
 
-# from catboost import CatBoostClassifier
-
-# import ruamel.yaml as yaml
-
-# client=MlflowClient(tracking_uri="https://dagshub.com/Raj-Narayanan-B/StudentMLProjectRegression.mlflow",
-#                       registry_uri="https://dagshub.com/Raj-Narayanan-B/StudentMLProjectRegression.mlflow")
-# client=MlflowClient()
 trial_number = 0
 
 
@@ -59,10 +60,10 @@ def load_yaml(filepath: Path):
         raise e
 
 
-def save_yaml(file=None, filepath: Path = None):
+def save_yaml(file=None, filepath: Path = None, mode: str = 'w'):
     try:
         yaml.dump(data=file,
-                  stream=open(filepath, 'w'),
+                  stream=open(file=filepath, mode=mode),
                   indent=4)
         logger.info("yaml file is saved")
     except Exception as e:
@@ -142,12 +143,17 @@ def DB_data_loader(config: list):
         secrets = json.load(f)
         logger.info(f"{config[1]} json file is loaded")
 
-    cloud_config = {list(config[0].keys())[0]: list(config[0].values())[0]}
+    cloud_config = {list(config[0].keys())[0]: list(config[0].values())[0],
+                    'connect_timeout': None}
     print(f"cloud_config: {cloud_config}")
     CLIENT_ID = secrets["clientId"]
     CLIENT_SECRET = secrets["secret"]
     auth_provider = PlainTextAuthProvider(CLIENT_ID, CLIENT_SECRET)
-    cluster = Cluster(cloud=cloud_config, auth_provider=auth_provider)
+    profile = ExecutionProfile(request_timeout=None)
+    cluster = Cluster(cloud=cloud_config,
+                      auth_provider=auth_provider,
+                      execution_profiles={EXEC_PROFILE_DEFAULT: profile},
+                      protocol_version=4)
 
     session = cluster.connect()
 
@@ -180,8 +186,7 @@ def stage_1_processing_function(dataframes: list) -> pd.DataFrame:
                                  on='ident_id')
     logger.info("Data Merging complete")
 
-    data_merger_final = data_merger_final.sort_values(
-        by='ident_id').reset_index(drop=True)
+    data_merger_final = data_merger_final.sort_values(by='ident_id').reset_index(drop=True)
     logger.info("Sorting and reseting_index complete")
 
     data_merger_final.drop(columns='ident_id', inplace=True)
@@ -190,8 +195,7 @@ def stage_1_processing_function(dataframes: list) -> pd.DataFrame:
     data_merger_final.rename(columns={'field_74_': 'class'}, inplace=True)
     logger.info("Renaming Target Column")
 
-    data_merger_final['class'] = data_merger_final['class'].map(
-        {'neg': 0, 'pos': 1})
+    data_merger_final['class'] = data_merger_final['class'].map({'neg': 0, 'pos': 1})
     logger.info("Mapping Target Column values")
 
     data_merger_final.replace('na', np.nan, inplace=True)
@@ -242,7 +246,7 @@ def stage_2_processing_function(dataframe: pd.DataFrame) -> pd.DataFrame:
                                       ('Robust_Scaler', RobustScaler())],
                                verbose=True)
         smote = SMOTETomek(
-            n_jobs=-1, sampling_strategy='minority', random_state=8)
+            n_jobs=-1, sampling_strategy='minority', random_state=42)
 
         logger.info("Pipeline created with KnnImputer, RobustScaler")
         logger.info("SmoteTomek obj created")
@@ -330,9 +334,8 @@ def eval_metrics(y_true, y_pred):
              "Accuracy_Score": accuracy_score_,
              "Cost": cost_})
 
+
 # DEPRECATED
-
-
 def parameter_tuning(model_class: ML_Model,
                      model_name: str,
                      x_train: pd.DataFrame,
@@ -351,8 +354,7 @@ def parameter_tuning(model_class: ML_Model,
 
     tags = {"tuner_1": "optuna",
             "tuner_2": "hyperopt",
-            "metrics": "['Balanced_Accuracy_Score', 'F1_Score',\
-                'Accuracy_Score', 'Cost']"}
+            "metrics": "['Balanced_Accuracy_Score', 'F1_Score', 'Accuracy_Score', 'Cost']"}
     exp_id = client.create_experiment(name=f"63_{model_name}_63", tags=tags)
 
 # OPTUNA
@@ -364,8 +366,7 @@ def parameter_tuning(model_class: ML_Model,
 
         def optuna_objective(trial):
             with mlflow.start_run(experiment_id=exp_id,
-                                  run_name=f"Trial {(trial.number)+1} for\
-                                    {model_name} (optuna)",
+                                  run_name=f"Trial {(trial.number)+1} for {model_name} (optuna)",
                                   tags={"run_type": "child"},
                                   nested=True):
                 space_optuna = {}
@@ -387,15 +388,12 @@ def parameter_tuning(model_class: ML_Model,
                               model_name=model_name,
                               #   params=model.get_params(),
                               should_log_parent_model=False,
-                              artifact_path=f'optuna_\
-                                {model_name}' if model_name == 'XGB_Classifier\
-                                    ' else f'optuna_{model_name}')
+                              artifact_path=f'optuna_{model_name}' if model_name == 'XGB_Classifier' else f'optuna_{model_name}')
                 print("Artifacts URI of Optuna Child Run: ",
                       mlflow.get_artifact_uri())
                 return cost
 
-        print("Artifacts URI of Optuna Parent Run:\
-              ", mlflow.get_artifact_uri())
+        print("Artifacts URI of Optuna Parent Run: ", mlflow.get_artifact_uri())
         find_param = optuna.create_study(direction="minimize")
         find_param.optimize(optuna_objective, n_trials=2)
 
@@ -406,9 +404,7 @@ def parameter_tuning(model_class: ML_Model,
                       run_id=parent_run_id,
                       exp_id=exp_id,
                       #   registered_model_name=f"Challenger_Optuna_{model_name}",
-                      artifact_path=f'challenger_optuna_\
-                        {model_name}' if model_name == 'XGB_Classifier\
-                            ' else f'challenger_optuna_{model_name}')
+                      artifact_path=f'challenger_optuna_{model_name}' if model_name == 'XGB_Classifier' else f'challenger_optuna_{model_name}')
 
         tuner_report['Optuna'] = {
             'Cost': find_param.best_value, 'params': find_param.best_params}
@@ -427,8 +423,7 @@ def parameter_tuning(model_class: ML_Model,
             global trial_number
             trial_number += 1
             with mlflow.start_run(experiment_id=exp_id,
-                                  run_name=f"Trial {trial_number} for\
-                                  {model_name} (hyperopt)",
+                                  run_name=f"Trial {trial_number} for {model_name} (hyperopt)",
                                   tags={"run_type": "child"},
                                   nested=True):
 
@@ -448,9 +443,7 @@ def parameter_tuning(model_class: ML_Model,
                               model=model,
                               model_name=model_name,
                               should_log_parent_model=False,
-                              artifact_path=f'hyperopt_{model_name}\
-                              ' if model_name == 'XGB_Classifier\
-                              ' else f'hyperopt_{model_name}')
+                              artifact_path=f'hyperopt_{model_name}' if model_name == 'XGB_Classifier' else f'hyperopt_{model_name}')
                 print("Artifacts URI of HyperOpt Child Run: ",
                       mlflow.get_artifact_uri())
                 return cost
@@ -474,9 +467,7 @@ def parameter_tuning(model_class: ML_Model,
                       run_id=parent_run_id,
                       exp_id=exp_id,
                       #   registered_model_name=f"Challenger_HyperOpt_{model_name}",
-                      artifact_path=f'challenger_hyperopt_{model_name}\
-                      ' if model_name == 'XGB_Classifier\
-                      ' else f'challenger_hyperopt_{model_name}')
+                      artifact_path=f'challenger_hyperopt_{model_name}' if model_name == 'XGB_Classifier' else f'challenger_hyperopt_{model_name}')
 
         tuner_report['HyperOpt'] = {'Cost': int(
             trials.average_best_error()), 'params': best_params}
@@ -494,9 +485,7 @@ def parameter_tuning(model_class: ML_Model,
     tuner_report['Best_Cost'] = min_cost_value
 
     report_[model_name] = tuner_report
-    print(
-        f'\n\n{model_name}\nMin Cost: {min_cost_value}\n\
-        {report_[model_name]}\n\n')
+    print(f'\n\n{model_name}\nMin Cost: {min_cost_value}\n{report_[model_name]}\n\n')
     # print(report_.values())
     costs = [value['Best_Cost'] for value in report_.values()]
     min_cost = min(costs)
@@ -514,6 +503,7 @@ def parameter_tuning(model_class: ML_Model,
     exp_id_list.append(exp_id)
 
     return (tuner_report, report_, best_model_so_far_, exp_id_list)
+# DEPRECATED
 
 
 def parameter_tuning_2(models: dict, client: MlflowClient,
@@ -570,12 +560,12 @@ def parameter_tuning_2(models: dict, client: MlflowClient,
         accuracies[keys]['Optuna'] = []
         # accuracies[keys]['HyperOpt']=[]
     tags = {"tuner": "optuna",
-            "metrics": "['Balanced_Accuracy_Score', 'F1_Score',\
-                'Accuracy_Score', 'Cost']"}
+            "metrics": "['Balanced_Accuracy_Score', 'F1_Score', 'Accuracy_Score', 'Cost']"}
     count = 1
     for key, value in models.items():
-        exp_id = mlflow.create_experiment(
-            name=f"{exp_count}_{key}_{exp_count}", tags=tags)
+        exp_id = mlflow.create_experiment(name=f"{exp_count}_{key}_{exp_count}", tags=tags)
+        # if key == 'Bagging_Classifier':
+        #     light_gbm = best_model_finder(model_name='Light_GBM', search_registered_models=False)
 
         def optuna_objective(trial, exp_id=exp_id):
             with mlflow.start_run(experiment_id=exp_id,
@@ -593,21 +583,18 @@ def parameter_tuning_2(models: dict, client: MlflowClient,
                     f"\n*******\nTrial_Number: {trial.number}\n*******")
                 for key_, value_ in params['optuna'][key].items():
                     space[key_] = eval(value_)
+                # if key == 'Bagging_Classifier':
+                #     space['estimator'] = light_gbm
                 for i in range(len(batch_list)):  # CHANGED
                     x = batch_list[i].drop(columns='class')
                     y = batch_list[i]['class']
                     print(f"\nBatch {i}")
                     pprint(f"\nSpace: {space}", compact=True)
-                    pipeline = imb_pipeline(steps=[
-                        ("KNN_Imputer", KNNImputer()),
-                        ("Robust_Scaler",
-                         RobustScaler()),
-                        ("SMOTETomek", SMOTETomek(
-                            sampling_strategy="minority", random_state=42)),
-                        (f"{key}", value(**space))])
-                    skf_cv = StratifiedKFold(
-                        n_splits=3, shuffle=True, random_state=42)
-
+                    pipeline = imb_pipeline(steps=[("KNN_Imputer", KNNImputer()),
+                                                   ("Robust_Scaler", RobustScaler()),
+                                                   ("SMOTETomek", SMOTETomek(sampling_strategy="minority", random_state=42)),
+                                                   (f"{key}", value(**space))])
+                    skf_cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
                     cv_results = cross_validate(estimator=pipeline,
                                                 X=x,
                                                 y=y,
@@ -625,14 +612,11 @@ def parameter_tuning_2(models: dict, client: MlflowClient,
                     accuracies[key]['Optuna'].append(np.mean(accuracy))
                     if i > 5:
                         print(
-                            f"Dynamic/Moving Threshold:\
-                            {dynamic_threshold(all_accuracies=batch_wise_accuracy)}\
-                            "
+                            f"Dynamic/Moving Threshold: {dynamic_threshold(all_accuracies=batch_wise_accuracy)}"
                         )
                     print(f"\nBatchwise_accuracies: {batch_wise_accuracy}")
                     print(
-                        f"\nBatchwise_Median_Accuracy:\
-                        {np.median(batch_wise_accuracy)}")
+                        f"\nBatchwise_Median_Accuracy: {np.median(batch_wise_accuracy)}")
                     # print(f"\nAccumulated Accuracies:\n{accuracies}\n")
 
                     trial.report(np.mean(accuracy), i)
@@ -687,8 +671,7 @@ def parameter_tuning_2(models: dict, client: MlflowClient,
             return np.mean(batch_wise_accuracy)
         find_params = optuna.create_study(direction='maximize',
                                           pruner=optuna.pruners.MedianPruner(),
-                                          sampler=optuna.samplers.
-                                          TPESampler(constant_liar=True))
+                                          sampler=optuna.samplers.TPESampler(constant_liar=True))
         find_params.optimize(func=optuna_objective,
                              n_trials=3)
         if count == 1:
@@ -699,8 +682,7 @@ def parameter_tuning_2(models: dict, client: MlflowClient,
             temp_df = find_params.trials_dataframe()
             temp_df['Model_name'] = key
             model_trial_study_df = pd.concat([model_trial_study_df, temp_df])
-        model_trial_study_df.to_csv(
-            'artifacts/metrics/model_trial_study_df.csv', index=False)
+        model_trial_study_df.to_csv('artifacts/metrics/model_trial_study_df.csv', index=False)
 
         mlflow_df = mlflow.search_runs(experiment_ids=[f'{exp_id}'])
         if mlflow_df.empty:
@@ -734,7 +716,8 @@ def dynamic_threshold(all_accuracies, quantile=0.25):
     return threshold
 
 
-def best_model_finder(models: dict, client: MlflowClient, filter_string=None):
+def best_model_finder(models: dict = None, client: MlflowClient = None, model_name: str = None,
+                      filter_string=None, search_registered_models: bool = True):
     # DEPRECATED
     # best_models_=sorted(report.items(), key=lambda x: x[1]['Best_Cost'])[:7]
     # best_models=[(best_models_[i][0],report[best_models_[i][0]]['Best_Cost']) for i in range(len(best_models_))]
@@ -770,41 +753,57 @@ def best_model_finder(models: dict, client: MlflowClient, filter_string=None):
 
     # Get the dictionary of all the registered challenger models from MLFlow.
     # This dict will have model names as keys and the run_IDs as values.
-    registered_models = {mlflow.search_registered_models(filter_string=filter_string)[i].latest_versions[0].name: mlflow.search_registered_models(
-        filter_string=filter_string)[i].latest_versions[0].run_id for i in range(len(mlflow.search_registered_models(filter_string=filter_string)))}
+    if search_registered_models is False:
+        best_run_id = mlflow.search_runs(experiment_names=[f"{exp_count}_{model_name}_{exp_count}"],
+                                         filter_string=f"tags.model ilike '{model_name}' and tags.run_type ilike 'parent'",
+                                         order_by=['metrics.Accuracy_Score DESC'])['run_id'][0]
+        best_params = params_evaluator(mlflow.get_run(best_run_id).data.params)
+        params = load_yaml(PARAMS_PATH)
+        best_model = eval(params.models[f'{model_name}'])(**best_params)
+        return (best_model)
 
-    # Get the accuracies and the respective params of the models as dict
-    run_details = {}
-    for key, value in registered_models.items():
-        run_details[client.get_run(value).data.tags['model']] = {}
-        run_details[client.get_run(value).data.tags['model']]['accuracy'] = client.get_run(
-            value).data.metrics['Accuracy_Score']
-        run_details[client.get_run(value).data.tags['model']]['params'] = params_evaluator(
-            client.get_run(value).data.params)
+    else:
+        registered_models = {mlflow.search_registered_models(filter_string=filter_string)[i].latest_versions[0].name: mlflow.search_registered_models(
+            filter_string=filter_string)[i].latest_versions[0].run_id for i in range(len(mlflow.search_registered_models(filter_string=filter_string)))}
 
-    # Create a dataframe from the "run_details" dict and sort it by "accuracy" in DESC
-    # In this dataframe only the models whose accuracy is greater than 0.9 are chosen.
-    models_df = pd.DataFrame(run_details).T
+        # Get the accuracies and the respective params of the models as dict
+        run_details = {}
+        for key, value in registered_models.items():
+            run_details[client.get_run(value).data.tags['model']] = {}
+            run_details[client.get_run(value).data.tags['model']]['accuracy'] = client.get_run(
+                value).data.metrics['Accuracy_Score']
+            run_details[client.get_run(value).data.tags['model']]['params'] = params_evaluator(
+                client.get_run(value).data.params)
 
-    sorted_models_df = models_df[models_df['accuracy'] > 0.9].sort_values(
-        by='accuracy', ascending=False)
+        # Create a dataframe from the "run_details" dict and sort it by "accuracy" in DESC
+        # In this dataframe only the models whose accuracy is greater than 0.9 are chosen.
+        models_df = pd.DataFrame(run_details).T
 
-    # Using the sorted_models_df from above, we are creating another dict that has the models fitted with the parameters.
-    mlflow_models = {key: value(
-        **(sorted_models_df.params[key])) for key, value in models.items() if key in sorted_models_df.index}
+        sorted_models_df = models_df[models_df['accuracy'] > 0.9].sort_values(
+            by='accuracy', ascending=False)
 
-    # Create the list[tuple] best_estimators to fit in the voting classifier
-    best_estimators_mlflow = list(
-        zip(mlflow_models.keys(), mlflow_models.values()))
+        # Using the sorted_models_df from above, we are creating another dict that has the models fitted with the parameters.
+        mlflow_models = {}
+        for key, value in models.items():
+            if key in sorted_models_df.index:
+                if key == 'Bagging_Classifier':
+                    sorted_models_df.params['Bagging_Classifier'] = {'n_estimators': sorted_models_df.params['Bagging_Classifier']['n_estimators'],
+                                                                     'n_jobs': sorted_models_df.params['Bagging_Classifier']['n_jobs'],
+                                                                     'estimator': sorted_models_df.params['Bagging_Classifier']['estimator']}
+                mlflow_models[key] = value(**(sorted_models_df.params[key]))
 
-    # If using stacking classifier, get the final estimator using:
-    final_estimator_mlflow = {key: value(**(sorted_models_df.iloc[:1, :].params[key]))
-                              for key, value in models.items() if key in sorted_models_df.iloc[:1, :].index}
-    # Access the final estimator model using:
+        # Create the list[tuple] best_estimators to fit in the voting classifier
+        best_estimators_mlflow = list(
+            zip(mlflow_models.keys(), mlflow_models.values()))
 
-    final_estimator = final_estimator_mlflow[sorted_models_df.iloc[:1, :].index.values[0]]
+        # If using stacking classifier, get the final estimator using:
+        final_estimator_mlflow = {key: value(**(sorted_models_df.iloc[:1, :].params[key]))
+                                  for key, value in models.items() if key in sorted_models_df.iloc[:1, :].index}
+        # Access the final estimator model using:
 
-    return best_estimators_mlflow, final_estimator_mlflow, final_estimator
+        final_estimator = final_estimator_mlflow[sorted_models_df.iloc[:1, :].index.values[0]]
+
+        return best_estimators_mlflow, final_estimator_mlflow, final_estimator
 
 
 def stacking_clf_trainer(best_estimators: list[tuple], final_estimator,
@@ -829,13 +828,11 @@ def stacking_clf_trainer(best_estimators: list[tuple], final_estimator,
 
 # Log Stacking_CLF in MLFlow
     tags = {
-        "metrics": "['Balanced_Accuracy_Score', 'F1_Score', 'Accuracy_Score',\
-        'Cost']"}
+        "metrics": "['Balanced_Accuracy_Score', 'F1_Score', 'Accuracy_Score', 'Cost']"}
     exp_id_stack_clf = mlflow.create_experiment(
         name=f"{exp_count}_Stacked_Classifier_{exp_count}", tags=tags)
     with mlflow.start_run(experiment_id=exp_id_stack_clf,
-                          run_name=f"\
-                          Challenger {stacking_clf.__class__.__name__}",
+                          run_name=f"Challenger {stacking_clf.__class__.__name__}",
                           tags={'model': 'Stacked_Classifier',
                                 "run_type": "parent",
                                 "model_type": "Challenger"}) as parent_run:
@@ -855,7 +852,7 @@ def stacking_clf_trainer(best_estimators: list[tuple], final_estimator,
                       registered_model_name="Challenger Stacked_Classifier",
                       artifact_path=None,
                       tags=tags)
-
+    save_binary(file=stacking_clf, filepath=r'artifacts\model\hp_tuned_model\stacking_classifier.joblib')
     return (metrics_stacking_clf, exp_id_stack_clf,
             y_pred_stacking_clf, parent_run_id)
 
@@ -879,13 +876,10 @@ def voting_clf_trainer(best_estimators: list[tuple],
 
 # Log Voting_CLF in MLFlow
     tags = {
-        "metrics": "['Balanced_Accuracy_Score', 'F1_Score', 'Accuracy_Score',\
-        'Cost']"}
-    exp_id_voting_clf = mlflow.create_experiment(
-        name=f"{exp_count}_Voting_Classifier_{exp_count}", tags=tags)
+        "metrics": "['Balanced_Accuracy_Score', 'F1_Score', 'Accuracy_Score', 'Cost']"}
+    exp_id_voting_clf = mlflow.create_experiment(name=f"{exp_count}_Voting_Classifier_{exp_count}", tags=tags)
     with mlflow.start_run(experiment_id=exp_id_voting_clf,
-                          run_name=f"\
-                          Challenger {voting_clf.__class__.__name__}",
+                          run_name=f"Challenger {voting_clf.__class__.__name__}",
                           tags={'model': 'Voting_Classifier',
                                 "run_type": "parent",
                                 "model_type": "Challenger"}) as parent_run:
@@ -905,7 +899,7 @@ def voting_clf_trainer(best_estimators: list[tuple],
                       registered_model_name="Challenger Voting_Classifier",
                       artifact_path=None,
                       tags=tags)
-
+    save_binary(file=voting_clf, filepath=r'artifacts\model\hp_tuned_model\voting_classifier.joblib')
     return (metrics_voting_clf, exp_id_voting_clf,
             y_pred_voting_clf, parent_run_id)
 
@@ -927,12 +921,9 @@ def model_trainer(mlflow_experiment_id, client: MlflowClient,
     run_id = 0
 
     with mlflow.start_run(experiment_id=mlflow_experiment_id,
-                          run_name=f"Challenger \
-                          {metrics_final_estimator['model'].__class__.__name__}\
-                          ",
+                          run_name=f"Challenger {metrics_final_estimator['model'].__class__.__name__}",
                           tags={
-                              'model': f"\
-                              {metrics_final_estimator['model'].__class__.__name__}",
+                              'model': f"{metrics_final_estimator['model'].__class__.__name__}",
                               "run_type": "parent",
                               "model_type": "Challenger"}
                           ) as final_estimator_run:
@@ -956,7 +947,7 @@ def model_trainer(mlflow_experiment_id, client: MlflowClient,
 
         mlflow.log_metrics(eval_metrics(
             y_true=y_test, y_pred=y_pred_final_estimator))
-
+    save_binary(file=model, filepath=r'artifacts\model\hp_tuned_model\final_estimator.joblib')
     return metrics_final_estimator, y_pred_final_estimator, run_id
 
 
@@ -983,8 +974,7 @@ def mlflow_logger(artifact_path: str, client: MlflowClient, metrics_: dict = Non
         print("Client_Registry_URI: ", client._registry_uri)
         filter_string = "tags.run_type ilike 'parent'"
         best_run_id = mlflow.search_runs(experiment_ids=[exp_id],
-                                         order_by=[
-                                             'metrics.Accuracy_Score DESC'],
+                                         order_by=['metrics.Accuracy_Score DESC'],
                                          filter_string=filter_string)[['run_id', 'artifact_uri', 'metrics.Accuracy_Score']]['run_id'][0]
         best_artifact_path = mlflow.search_runs(experiment_ids=[exp_id],
                                                 order_by=[
@@ -1083,8 +1073,7 @@ def mlflow_logger(artifact_path: str, client: MlflowClient, metrics_: dict = Non
                     params[key] = value
                     if value == 'nan':
                         params[key] = np.nan
-            print("Best Params:\n", {
-                  key: value for key, value in params.items() if value is not None}, "\n")
+            print("Best Params:\n", {key: value for key, value in params.items() if value is not None}, "\n")
             # signature=mlflow.xgboost.infer_signature(model_input=x_train,
             #                                             model_output=best_model.predict(x_train),
             #                                             params={key: value for key, value in params.items() if value is not None})
@@ -1362,9 +1351,8 @@ def batch_data_create(data: pd.DataFrame):
 
     return batch_list
 
+
 # DEPRECATED
-
-
 def params_extractor(data: pd.DataFrame):
 
     params_yaml = load_yaml(PARAMS_PATH)

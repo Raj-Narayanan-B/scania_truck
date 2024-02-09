@@ -1,14 +1,14 @@
-from src.entity.entity_config import DataSplitConf, Stage1ProcessingConf
+# from src.entity.entity_config import DataSplitConf, Stage1ProcessingConf
+from src.components.stage_2_initial_preprocessing import stage_2_initial_processing_component
 from src.utils import train_test_splitter
 import pandas as pd
 
 
-class data_splitting_component:
-    def __init__(self,
-                 data_split_conf: DataSplitConf,
-                 stage1_processor_conf: Stage1ProcessingConf) -> None:
-        self.split_config = data_split_conf
-        self.stage1_processor_config = stage1_processor_conf
+class data_splitting_component(stage_2_initial_processing_component):
+    def __init__(self):
+        super().__init__()
+        self.split_config = self.get_data_split_config()
+        self.stage1_processor_config = self.get_stage1_processing_config()
 
     def data_splitting(self, *args):
         if args:

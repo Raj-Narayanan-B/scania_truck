@@ -1,16 +1,16 @@
-VotingClassifier:
+Final_Test_Data_Prediction_Report:
     Challenger LGBMClassifier:
-        Accuracy_Score: 0.9524817237398999
-        Balanced_Accuracy_Score: 0.9524817237398999
-        Cost: 574400.0
-        F1_Score: 0.9512275389982229
+        Accuracy_Score: 0.9682890855457227
+        Balanced_Accuracy_Score: 0.9682890855457227
+        Cost: 376410.0
+        F1_Score: 0.9677650663276947
     Challenger Stacked_Classifier:
-        Accuracy_Score: 0.9757919712710017
-        Balanced_Accuracy_Score: 0.9757919712710017
-        Cost: 208940.0
-        F1_Score: 0.9757398541177982
+        Accuracy_Score: 0.27356675644478645
+        Balanced_Accuracy_Score: 0.27356675644478645
+        Cost: 6804810.0
+        F1_Score: 0.16070237830629028
     Challenger Voting_Classifier:
-        Accuracy_Score: 0.9822046941131204
-        Balanced_Accuracy_Score: 0.9822046941131204
-        Cost: 194690.0
-        F1_Score: 0.9820800103322463
+        Accuracy_Score: 0.9865653456457611
+        Balanced_Accuracy_Score: 0.9865653456457611
+        Cost: 146290.0
+        F1_Score: 0.9864956328359171

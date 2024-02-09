@@ -1,17 +1,17 @@
 import pandas as pd
 import os
 # from typing import Any #type: ignore
-from src.entity.entity_config import DataSplitConf, Stage2ProcessingConf, PreprocessorConf
+from src.components.stage_3_data_split import data_splitting_component
+# from src.entity.entity_config import DataSplitConf, Stage2ProcessingConf, PreprocessorConf
 from src.utils import stage_2_processing_function
 
 
-class stage_4_final_processing_component:
-    def __init__(self, data_split_conf: DataSplitConf,
-                 stage_2_processor_conf: Stage2ProcessingConf,
-                 preprocessor_conf: PreprocessorConf):
-        self.data_split_config = data_split_conf
-        self.stage_2_processor_config = stage_2_processor_conf
-        self.preprocessor_config = preprocessor_conf
+class stage_4_final_processing_component(data_splitting_component):
+    def __init__(self):
+        super().__init__()
+        self.data_split_config = self.get_data_split_config()
+        self.stage_2_processor_config = self.get_stage2_processing_config()
+        self.preprocessor_config = self.get_preprocessor_config()
 
     def final_processing(self, *args):
         if os.path.exists(self.preprocessor_config.preprocessor_path):
@@ -36,11 +36,10 @@ class stage_4_final_processing_component:
                                        index=False)
             return (transformed_train_df, transformed_test_df)
 
+
 # config = ConfigurationManager()
 # data_split_obj = config.get_data_split_config()
 # stage_2_config = config.get_stage2_processing_config()
 # preprocessor_config = config.get_preprocessor_config()
-# obj = stage_4_final_processing_component(data_split_conf = data_split_obj,
-#                                    stage_2_processor_conf = stage_2_config,
-#                                    preprocessor_conf = preprocessor_config)
-# obj.final_processing()
+obj = stage_4_final_processing_component()
+obj.final_processing()

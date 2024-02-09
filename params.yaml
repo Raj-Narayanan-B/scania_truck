@@ -1,3 +1,17 @@
+models:
+  Logistic_Regression: LogisticRegression
+  SGD_Classifier: SGDClassifier
+  Random Forest: RandomForestClassifier
+  Ada_Boost: AdaBoostClassifier
+  Grad_Boost: GradientBoostingClassifier
+  Light_GBM: LGBMClassifier
+  Bagging_Classifier: BaggingClassifier
+  ExtraTreesClassifier: ExtraTreesClassifier
+  Hist_Grad_Boost_Classifier: HistGradientBoostingClassifier
+  Decision_Tree_Classifier: DecisionTreeClassifier
+  XGB_Classifier: XGBClassifier
+  KNN_Classifier: KNeighborsClassifier
+
 optuna:
   Logistic_Regression:
     penalty: trial.suggest_categorical('penalty', ['l2', None])
@@ -30,6 +44,7 @@ optuna:
 
   Bagging_Classifier:
     n_estimators: trial.suggest_int('n_estimators', 50, 100)
+    n_jobs: trial.suggest_categorical('n_jobs', [-1])
 
   ExtraTreesClassifier:
     n_estimators: trial.suggest_int('n_estimators', 100, 500)
@@ -65,64 +80,68 @@ optuna:
   Stacked_Classifier:
     stack_method: trial.suggest_categorical('stack_method', ['auto', 'predict'])
     passthrough: trial.suggest_categorical('passthrough', [True, False])
+# hyperopt:
+#   Logistic_Regression:
+#     penalty: hp.choice('penalty', ['l2', None])
 
-hyperopt:
-  Logistic_Regression:
-    penalty: hp.choice('penalty', ['l2', None])
+#   SGD_Classifier:
+#     loss: hp.choice('loss', ['squared_epsilon_insensitive', 'epsilon_insensitive', 'huber', 'squared_error', 'perceptron', 'squared_hinge', 'hinge', 'log_loss', 'modified_huber'])
 
-  SGD_Classifier:
-    loss: hp.choice('loss', ['squared_epsilon_insensitive', 'epsilon_insensitive', 'huber', 'squared_error', 'perceptron', 'squared_hinge', 'hinge', 'log_loss', 'modified_huber'])
+#   Random Forest:
+#     n_estimators: scope.int(hp.quniform('n_estimators', 100, 150, 1))
+#     criterion: hp.choice('criterion', ['log_loss', 'entropy', 'gini'])
+#     max_features: hp.choice('max_features', ['sqrt', 'log2', None])
+#     class_weight: hp.choice('class_weight', ['balanced', 'balanced_subsample'])
 
-  Random Forest:
-    n_estimators: scope.int(hp.quniform('n_estimators', 100, 150, 1))
-    criterion: hp.choice('criterion', ['log_loss', 'entropy', 'gini'])
-    max_features: hp.choice('max_features', ['sqrt', 'log2', None])
-    class_weight: hp.choice('class_weight', ['balanced', 'balanced_subsample'])
+#   Ada_Boost:
+#     n_estimators: scope.int(hp.quniform('n_estimators', 100, 150, 1))
+#     algorithm: hp.choice('algorithm', ['SAMME', 'SAMME.R'])
 
-  Ada_Boost:
-    n_estimators: scope.int(hp.quniform('n_estimators', 100, 150, 1))
-    algorithm: hp.choice('algorithm', ['SAMME', 'SAMME.R'])
+#   Grad_Boost:
+#     loss: hp.choice('loss', ['log_loss', 'exponential'])
+#     n_estimators: scope.int(hp.quniform('n_estimators', 100, 150, 1))
+#     criterion: hp.choice('criterion', ['friedman_mse', 'squared_error'])
+#     max_features: hp.choice('max_features', ['sqrt', 'log2', None])
 
-  Grad_Boost:
-    loss: hp.choice('loss', ['log_loss', 'exponential'])
-    n_estimators: scope.int(hp.quniform('n_estimators', 100, 150, 1))
-    criterion: hp.choice('criterion', ['friedman_mse', 'squared_error'])
-    max_features: hp.choice('max_features', ['sqrt', 'log2', None])
+#   Bagging_Classifier:
+#     n_estimators: scope.int(hp.quniform('n_estimators', 50, 100, 1))
 
-  Bagging_Classifier:
-    n_estimators: scope.int(hp.quniform('n_estimators', 50, 100, 1))
+#   ExtraTreesClassifier:
+#     n_estimators: scope.int(hp.quniform('n_estimators', 100, 1000, 1))
+#     criterion: hp.choice('criterion', ['log_loss', 'entropy', 'gini'])
+#     max_features: hp.choice('max_features', ['sqrt', 'log2', None])
+#     class_weight: hp.choice('class_weight', ['balanced', 'balanced_subsample'])
 
-  ExtraTreesClassifier:
-    n_estimators: scope.int(hp.quniform('n_estimators', 100, 1000, 1))
-    criterion: hp.choice('criterion', ['log_loss', 'entropy', 'gini'])
-    max_features: hp.choice('max_features', ['sqrt', 'log2', None])
-    class_weight: hp.choice('class_weight', ['balanced', 'balanced_subsample'])
+#   Hist_Grad_Boost_Classifier:
+#     max_iter: scope.int(hp.quniform('max_iter', 100, 800, 1))
 
-  Hist_Grad_Boost_Classifier:
-    max_iter: scope.int(hp.quniform('max_iter', 100, 800, 1))
+#   Decision_Tree_Classifier:
+#     criterion: hp.choice('criterion', ['log_loss', 'entropy', 'gini'])
+#     splitter: hp.choice('splitter', ['best', 'random'])
+#     max_features: hp.choice('max_features', ['sqrt', 'log2', None])
 
-  Decision_Tree_Classifier:
-    criterion: hp.choice('criterion', ['log_loss', 'entropy', 'gini'])
-    splitter: hp.choice('splitter', ['best', 'random'])
-    max_features: hp.choice('max_features', ['sqrt', 'log2', None])
+#   XGB_Classifier:
+#     n_estimators: scope.int(hp.quniform('n_estimators', 100, 200, 1))
+#     learning_rate: hp.uniform('learning_rate', .00001, 1.0)
+#     booster: hp.choice('booster', ['gbtree', 'gblinear', 'dart'])
+#     tree_method: hp.choice('tree_method', ['exact', 'approx', 'hist'])
 
-  XGB_Classifier:
-    n_estimators: scope.int(hp.quniform('n_estimators', 100, 200, 1))
-    learning_rate: hp.uniform('learning_rate', .00001, 1.0)
-    booster: hp.choice('booster', ['gbtree', 'gblinear', 'dart'])
-    tree_method: hp.choice('tree_method', ['exact', 'approx', 'hist'])
+#   KNN_Classifier:
+#     n_neighbors: scope.int(hp.quniform('n_neighbors', 3, 11, 2))
+#     weights: hp.choice('weights', ['uniform', 'distance'])
+#     algorithm: hp.choice('algorithm', ['auto', 'ball_tree', 'kd_tree', 'brute'])
 
-  KNN_Classifier:
-    n_neighbors: scope.int(hp.quniform('n_neighbors', 3, 11, 2))
-    weights: hp.choice('weights', ['uniform', 'distance'])
-    algorithm: hp.choice('algorithm', ['auto', 'ball_tree', 'kd_tree', 'brute'])
+# MLP_Classifier:
+#   hidden_layer_sizes: hp.choice('hidden_layer_sizes', [(500,), (500, 300, 200, 150,), (700, 500, 300, 100, ), (1500, 800, 400, 200, )])
+#   activation: hp.choice('activation', ['identity', 'logistic', 'tanh' , 'relu'])
+#   learning_rate: hp.choice('learning_rate', ['constant', 'invscaling', 'adaptive'])
+#   max_iter: scope.int(hp.quniform('max_iter', 100, 800, 1))
 
-  # MLP_Classifier:
-  #   hidden_layer_sizes: hp.choice('hidden_layer_sizes', [(500,), (500, 300, 200, 150,), (700, 500, 300, 100, ), (1500, 800, 400, 200, )])
-  #   activation: hp.choice('activation', ['identity', 'logistic', 'tanh' , 'relu'])
-  #   learning_rate: hp.choice('learning_rate', ['constant', 'invscaling', 'adaptive'])
-  #   max_iter: scope.int(hp.quniform('max_iter', 100, 800, 1))
+# Stacked_Classifier:
+#   stack_method: hp.choice('stack_method', ['auto', 'predict'])
+#   passthrough: hp.choice('passthrough', [True, False])
 
-  Stacked_Classifier:
-    stack_method: hp.choice('stack_method', ['auto', 'predict'])
-    passthrough: hp.choice('passthrough', [True, False])
+# Challenger_Stacked_Classifier: mlflow-artifacts:/aacd27cc7a9d429ab2439e37a4e8cdfb/d3eb9ead8a5c49f9b8299efea62d58a2/artifacts/candidate_Stacked_Classifier/model.pkl
+# Challenger_Voting_Classifier: mlflow-artifacts:/cd6eb5acbadd414fb5d32e02d983d99b/b2aea20ef6094e1a94b1567aea90753f/artifacts/candidate_Voting_Classifier/model.pkl
+# Final_Estimator: mlflow-artifacts:/f2a1d0cb47994e43887a7bf8ff11fbc0/4f79ae8649044b24a593ec1c748e012b/artifacts/challenger_LGBMClassifier/model.pkl
+# Champion_Estimator: mlflow-artifacts:/cd6eb5acbadd414fb5d32e02d983d99b/b2aea20ef6094e1a94b1567aea90753f/artifacts/candidate_Voting_Classifier/model.pkl

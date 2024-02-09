@@ -51,6 +51,8 @@ class DataPathConf:
     test_data1: Path
     test_data2: Path
     test_data3: Path
+    final_test_data: Path
+    prediction_data: Path
 
 
 @dataclass(frozen=True)
@@ -79,6 +81,9 @@ class ModelTrainerConf:
     root_dir: Path
     model_path: str
     hp_model_path: Path
+    final_estimator_path: Path
+    stacking_classifier_path: Path
+    voting_classifier_path: Path
 
 
 @dataclass(frozen=True)

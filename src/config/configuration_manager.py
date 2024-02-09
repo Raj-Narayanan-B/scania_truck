@@ -11,17 +11,13 @@ from src.utils import load_yaml
 
 
 class ConfigurationManager:
-    def __init__(self,
-                 config=CONFIG_PATH,
-                 params=PARAMS_PATH,
-                 schema=SCHEMA_PATH
-                 ):
-        self.config = config
-        self.config_path = load_yaml(config)
-        self.params = params
-        self.params_path = load_yaml(params)
-        self.schema = schema
-        self.schema_path = load_yaml(schema)
+    def __init__(self):
+        self.config = CONFIG_PATH
+        self.config_path = load_yaml(CONFIG_PATH)
+        self.params = PARAMS_PATH
+        self.params_path = load_yaml(PARAMS_PATH)
+        self.schema = SCHEMA_PATH
+        self.schema_path = load_yaml(SCHEMA_PATH)
 
     def get_data_ingestion_config(self) -> DataIngestionConf:
         config = self.config_path.data_ingestion_config
@@ -74,7 +70,9 @@ class ConfigurationManager:
             train_data3=config.train_data3,
             test_data1=config.test_data1,
             test_data2=config.test_data2,
-            test_data3=config.test_data3
+            test_data3=config.test_data3,
+            final_test_data=config.final_test_data,
+            prediction_data=config.predicted_data
         )
         return (data_path_config)
 
@@ -118,7 +116,10 @@ class ConfigurationManager:
         model_config = ModelTrainerConf(
             root_dir=config.root_dir,
             model_path=config.model_path,
-            hp_model_path=config.hp_model_path_
+            hp_model_path=config.hp_model_path_,
+            final_estimator_path=config.final_estimator,
+            stacking_classifier_path=config.stacking_classifier,
+            voting_classifier_path=config.voting_classifier
         )
         return model_config
 

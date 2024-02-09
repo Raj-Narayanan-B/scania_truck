@@ -1,9 +1,9 @@
 schema: '2.0'
 stages:
   pip_requirements:
-    cmd: python pip_install.py
+    cmd: pip install -r requirements.txt
   stage_1_processing:
-    cmd: python src/components/2_stage_1_preprocessing.py
+    cmd: python src/pipeline/training_pipeline.py training_pipeline_obj.training_pipeline.initial_processing
     deps:
     - path: artifacts/data/raw/test_data_1.csv
       hash: md5
@@ -29,33 +29,128 @@ stages:
       hash: md5
       md5: e145c8dba3370ab3616c69fae3702588
       size: 6820608
-    - path: src/components/1_data_ingestion.py
+    outs:
+    - path: artifacts/data/processed/stage_1_processing/preprocessed_test_data.csv
       hash: md5
-      md5: 19ff1d3dfe3860d1581a2322c7404b20
-      size: 2038
+      md5: cc82d8c9aa20fb97d053ebff7bf5b191
+      size: 16295271
+    - path: artifacts/data/processed/stage_1_processing/preprocessed_train_data.csv
+      hash: md5
+      md5: fc9e7a6e78a63bc12c9e0f3e4e694aab
+      size: 61022889
   data_splitting:
-    cmd: python src/components/3_data_split.py
+    cmd: python src/pipeline/training_pipeline.py training_pipeline_obj.training_pipeline.data_splitting
     deps:
     - path: artifacts/data/processed/stage_1_processing/preprocessed_train_data.csv
       hash: md5
-      md5: 44041bed0bc771771ad47826f5830911
-      size: 60962888
-    - path: src/components/2_stage_1_preprocessing.py
+      md5: fc9e7a6e78a63bc12c9e0f3e4e694aab
+      size: 61022889
+    outs:
+    - path: artifacts/data/train_test/test.csv
       hash: md5
-      md5: e925de8762373105ec05c5f5b4a99ec8
-      size: 1739
+      md5: 08d12078b2234f18bd07adb7002f58fb
+      size: 15248261
+    - path: artifacts/data/train_test/train.csv
+      hash: md5
+      md5: 6c0ad1881e8ebda8839ad0b789539860
+      size: 45775822
   stage_2_processing:
-    cmd: python src/components/4_stage_2_preprocessing.py
+    cmd: python src/pipeline/training_pipeline.py training_pipeline_obj.training_pipeline.final_processing
     deps:
     - path: artifacts/data/train_test/test.csv
       hash: md5
-      md5: d35e732d30d219c714050b29d72eaa0e
-      size: 15233260
+      md5: 08d12078b2234f18bd07adb7002f58fb
+      size: 15248261
     - path: artifacts/data/train_test/train.csv
       hash: md5
-      md5: e3132d2cf47bf03c950833c298fbf883
-      size: 45730821
-    - path: src/components/3_data_split.py
+      md5: 6c0ad1881e8ebda8839ad0b789539860
+      size: 45775822
+    outs:
+    - path: artifacts/data/processed/stage_2_processing/processed_test_data.csv
       hash: md5
-      md5: fc0f530b7fc7a2740968dfe22b8642dc
-      size: 1151
+      md5: b1d12ea01aac2f22fdab39312d788d52
+      size: 76645386
+    - path: artifacts/data/processed/stage_2_processing/processed_train_data.csv
+      hash: md5
+      md5: d9c586edc14065fe92e5e54eecfe5b80
+      size: 230309428
+    - path: artifacts/preprocessor/preprocessor.joblib
+      hash: md5
+      md5: bdc5b7f4581519a04338bce0591122e9
+      size: 68856462
+  data_ingestion:
+    cmd: python src/pipeline/training_pipeline.py training_pipeline_obj.training_pipeline.data_ingestion
+    deps:
+    - path: Secrets/Bundles/Test Data Bundles/secure-connect-scania-truck-failure-test1.zip
+      hash: md5
+      md5: 2138fa96bba3bd7007bcd45536d39101
+      size: 12280
+    - path: Secrets/Bundles/Test Data Bundles/secure-connect-scania-truck-failure-test2.zip
+      hash: md5
+      md5: 3624d826618f4bde57b18f761a257117
+      size: 12282
+    - path: Secrets/Bundles/Test Data Bundles/secure-connect-scania-truck-failure-test3.zip
+      hash: md5
+      md5: da0f67b5b0dfc4bd616de22efa10fc93
+      size: 12275
+    - path: Secrets/Bundles/secure-connect-scania-truck-failure-1.zip
+      hash: md5
+      md5: 219314d721bd24e35602128bfceced69
+      size: 12289
+    - path: Secrets/Bundles/secure-connect-scania-truck-failure-train-2.zip
+      hash: md5
+      md5: 62d5abcfb6e8a7777ace6099786087d5
+      size: 12287
+    - path: Secrets/Bundles/secure-connect-scania-truck-failure-train-3.zip
+      hash: md5
+      md5: 87c503d91c04d6e43d82179dcccb65a3
+      size: 12265
+    - path: Secrets/Tokens/Test Data Tokens/scania_truck_failure_test1-token.json
+      hash: md5
+      md5: 823ae598491d33d4b7be1f9238182bd6
+      size: 300
+    - path: Secrets/Tokens/Test Data Tokens/scania_truck_failure_test2-token.json
+      hash: md5
+      md5: 41192d024930e5adfc03d310931e4585
+      size: 300
+    - path: Secrets/Tokens/Test Data Tokens/scania_truck_failure_test3-token.json
+      hash: md5
+      md5: a4a14143988ebcab743414142fe0a96d
+      size: 300
+    - path: Secrets/Tokens/scania_truck_failure_1-token.json
+      hash: md5
+      md5: 3147e8f76d1b5c73747482d54824ef6a
+      size: 300
+    - path: Secrets/Tokens/scania_truck_failure_train_2-token.json
+      hash: md5
+      md5: 89338c6a126eefdeb94712fc09ae29f8
+      size: 300
+    - path: Secrets/Tokens/scania_truck_failure_train_3-token.json
+      hash: md5
+      md5: b4fd866a8acb3ed997bdfa19c00b8df4
+      size: 300
+    outs:
+    - path: artifacts/data/raw/test_data_1.csv
+      hash: md5
+      md5: 533af08600512981ce8a08ef67b4ecca
+      size: 5082459
+    - path: artifacts/data/raw/test_data_2.csv
+      hash: md5
+      md5: 8fd093f2ee05f54e8caa22fe55c9601a
+      size: 5314170
+    - path: artifacts/data/raw/test_data_3.csv
+      hash: md5
+      md5: 0afbc2bf50d94ab9deb968a1e22ab654
+      size: 1816483
+    - path: artifacts/data/raw/train_data_1.csv
+      hash: md5
+      md5: 259d633b73dcff0024112122c20f5352
+      size: 19032277
+    - path: artifacts/data/raw/train_data_2.csv
+      hash: md5
+      md5: 0dc840a281d99dfb0f5f26efb06cf289
+      size: 19921813
+    - path: artifacts/data/raw/train_data_3.csv
+      hash: md5
+      md5: e145c8dba3370ab3616c69fae3702588
+      size: 6820608
