@@ -154,3 +154,79 @@ stages:
       hash: md5
       md5: e145c8dba3370ab3616c69fae3702588
       size: 6820608
+  model_tuning_tracking_training:
+    cmd: python src/pipeline/training_pipeline.py training_pipeline_obj.training_pipeline.models_tuning
+    deps:
+    - path: artifacts/data/processed/stage_2_processing/processed_test_data.csv
+      hash: md5
+      md5: b1d12ea01aac2f22fdab39312d788d52
+      size: 76645386
+    - path: artifacts/data/processed/stage_2_processing/processed_train_data.csv
+      hash: md5
+      md5: d9c586edc14065fe92e5e54eecfe5b80
+      size: 230309428
+    outs:
+    - path: artifacts/metrics/metrics.yaml
+      hash: md5
+      md5: dc116656e282ea5d9c425093c94b9310
+      size: 488
+    - path: artifacts/metrics/model_trial_study_df.csv
+      hash: md5
+      md5: 7029a863238fe20929a441269b606702
+      size: 6046
+    - path: artifacts/model/hp_tuned_model/final_estimator.joblib
+      hash: md5
+      md5: efbc69dae080950b5a353f630487abe2
+      size: 490804
+    - path: artifacts/model/hp_tuned_model/stacking_classifier.joblib
+      hash: md5
+      md5: c2d1b40fb44a45afc6916a881b3f60ef
+      size: 23751110
+    - path: artifacts/model/hp_tuned_model/voting_classifier.joblib
+      hash: md5
+      md5: ef2a76318f6c7266e15f5afd9d211199
+      size: 22975664
+  test_data_prediction:
+    cmd: python src/pipeline/training_pipeline.py training_pipeline_obj.training_pipeline.model_training
+    deps:
+    - path: artifacts/data/processed/stage_1_processing/preprocessed_test_data.csv
+      hash: md5
+      md5: cc82d8c9aa20fb97d053ebff7bf5b191
+      size: 16295271
+    - path: artifacts/model/hp_tuned_model/final_estimator.joblib
+      hash: md5
+      md5: efbc69dae080950b5a353f630487abe2
+      size: 490804
+    - path: artifacts/model/hp_tuned_model/stacking_classifier.joblib
+      hash: md5
+      md5: c2d1b40fb44a45afc6916a881b3f60ef
+      size: 23751110
+    - path: artifacts/model/hp_tuned_model/voting_classifier.joblib
+      hash: md5
+      md5: ef2a76318f6c7266e15f5afd9d211199
+      size: 22975664
+    - path: artifacts/preprocessor/preprocessor.joblib
+      hash: md5
+      md5: bdc5b7f4581519a04338bce0591122e9
+      size: 68856462
+    - path: schema.yaml
+      hash: md5
+      md5: 95ff19d9850439179c07ad34865353b3
+      size: 3605
+    outs:
+    - path: artifacts/data/final_testing_data_and_predicted_data/predictions.csv
+      hash: md5
+      md5: d07cd6edb41612e09df45224a97842ca
+      size: 93582
+    - path: artifacts/data/final_testing_data_and_predicted_data/transformed_test_df.csv
+      hash: md5
+      md5: 2ab808645574cb0497354cf1452d7a97
+      size: 81340854
+    - path: artifacts/metrics/best_metric.yaml
+      hash: md5
+      md5: b9a63c65c43e4513b16dedfa12c12859
+      size: 620
+    - path: artifacts/model/champion_model.joblib
+      hash: md5
+      md5: 70793f8ff50be42226b73f395b8f20b3
+      size: 22982320
