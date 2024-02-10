@@ -40,7 +40,7 @@ from box import ConfigBox
 from pathlib import Path  # type: ignore
 import numpy as np
 import pandas as pd
-exp_count = 290
+exp_count = 291
 ML_Model = NewType('Machine_Learning_Model', object)
 
 w.filterwarnings('ignore')
@@ -336,7 +336,7 @@ def eval_metrics(y_true, y_pred):
 
 
 # DEPRECATED
-def parameter_tuning(model_class: ML_Model,
+def parameter_tuning(model_class,
                      model_name: str,
                      x_train: pd.DataFrame,
                      x_test: pd.DataFrame,
@@ -907,7 +907,7 @@ def voting_clf_trainer(best_estimators: list[tuple],
 def model_trainer(mlflow_experiment_id, client: MlflowClient,
                   x_train: pd.DataFrame, y_train: pd.DataFrame,
                   x_test: pd.DataFrame, y_test: pd.DataFrame,
-                  model: ML_Model = None, model_dict: dict = None,
+                  model=None, model_dict: dict = None,
                   #   models: dict=None,
                   params: dict = None):
     y_pred_final_estimator = model_trainer_2(x_train=x_train, y_train=y_train,

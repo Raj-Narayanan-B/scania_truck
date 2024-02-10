@@ -41,5 +41,5 @@ class stage_4_final_processing_component(data_splitting_component):
 # data_split_obj = config.get_data_split_config()
 # stage_2_config = config.get_stage2_processing_config()
 # preprocessor_config = config.get_preprocessor_config()
-obj = stage_4_final_processing_component()
-obj.final_processing()
+# obj = stage_4_final_processing_component()
+# obj.final_processing()

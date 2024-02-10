@@ -79,7 +79,7 @@ stages:
       md5: bdc5b7f4581519a04338bce0591122e9
       size: 68856462
   data_ingestion:
-    cmd: python src/pipeline/training_pipeline.py training_pipeline_obj.training_pipeline.data_ingestion
+    cmd: python src/pipeline/training_pipeline.py training_pipeline_obj.data_ingestion_
     deps:
     - path: Secrets/Bundles/Test Data Bundles/secure-connect-scania-truck-failure-test1.zip
       hash: md5

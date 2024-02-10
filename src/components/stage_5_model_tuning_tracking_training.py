@@ -38,9 +38,9 @@ class model_tuning_tracking_component(stage_4_final_processing_component):
         x_train, y_train = train_df.drop(columns='class'), train_df['class']
         x_test, y_test = test_df.drop(columns='class'), test_df['class']
 
-        client = MlflowClient(tracking_uri="https://dagshub.com/Raj-Narayanan-B/StudentMLProjectRegression.mlflow",
-                              registry_uri="https://dagshub.com/Raj-Narayanan-B/StudentMLProjectRegression.mlflow")
-
+        # client = MlflowClient(tracking_uri="https://dagshub.com/Raj-Narayanan-B/StudentMLProjectRegression.mlflow",
+        #                       registry_uri="https://dagshub.com/Raj-Narayanan-B/StudentMLProjectRegression.mlflow")
+        client = MlflowClient()
         dataframe = pd.read_csv(self.stage1_processor_config.train_data_path)
 
         # models = {'Logistic_Regression': LogisticRegression,

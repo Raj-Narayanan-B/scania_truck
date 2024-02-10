@@ -25,9 +25,9 @@ class model_trainer_component(model_tuning_tracking_component):
     def model_training(self):
         schema = self.schema_path
         target = list(schema.Target.keys())[0]
-        client = MlflowClient(tracking_uri="https://dagshub.com/Raj-Narayanan-B/StudentMLProjectRegression.mlflow",
-                              registry_uri="https://dagshub.com/Raj-Narayanan-B/StudentMLProjectRegression.mlflow")
-
+        # client = MlflowClient(tracking_uri="https://dagshub.com/Raj-Narayanan-B/StudentMLProjectRegression.mlflow",
+        #                       registry_uri="https://dagshub.com/Raj-Narayanan-B/StudentMLProjectRegression.mlflow")
+        client = MlflowClient()
         logger.info("loading training and testing datasets")
 
         main_test_df = pd.read_csv(self.stage_1_config.test_data_path)
