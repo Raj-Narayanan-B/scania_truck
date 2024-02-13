@@ -89,24 +89,35 @@ export MLFLOW_TRACKING_PASSWORD=8af4cc66be8aec751397fd525e47ae395fa67442
 
 TO-DO:
 Feb8,2024:
-    <!-- - update outs section in dvc.yaml file for the stage: model_tuning_tracking_training
+    - update outs section in dvc.yaml file for the stage: model_tuning_tracking_training
     - the placeholders should be updated.
     - the trials df from parameter_tuning2 should be given as an outs
     - rest all that are being saved from model_tuning_tracking_training.py file should be given in outs -->
-    <!-- - update the way mlflow_model_sources.yaml file is being created from model_tuning_tracking_training.py file. The keys should be changed accordingly. -->
+    - update the way mlflow_model_sources.yaml file is being created from model_tuning_tracking_training.py file. The keys should be changed accordingly.
 
-    <!-- - udpdate the outs and deps in test_data_prediction stage according to the placeholders.
-    - update dyc.yaml file's CMD sections -->
+    - udpdate the outs and deps in test_data_prediction stage according to the placeholders.
+    - update dyc.yaml file's CMD sections
     - resume the databases & try dvc repro -f dvc.yaml
 
 
-    <!-- - if you get an error to check the cluster status, delete the vector databases and create new vectorless databases and upload the data into them using dsbulkloader.
+    - if you get an error to check the cluster status, delete the vector databases and create new vectorless databases and upload the data into them using dsbulkloader.
 
     - save the token.json and secure_connect_bundles of those new databases
-    - try dvc repro -f dvc.yaml again! -->
+    - try dvc repro -f dvc.yaml again!
 
 Feb 9, 2024
     - create prediction pipeline
     - check if any line of code has the full file path. It should be only the relative path.
     - create app.py and its dependencies (static & templates)
-    - create docker image
+
+Feb 13, 2024
+    - clean up the templates(compulsarily) and static files(compulsarily) and app.pyy file(if necessary)
+    - Configure the AirFlow Server using docker
+    - clean the training_pipeline.py file (put everything inside a single function as before)
+    - check if the env variables are set in the docker file
+
+
+Feb 14, 2024
+    - Create the github/workflows/main.yaml
+    - make sure that dvc is tracking all the artifact files (all the csv files created and downloaded, joblib files(model/preprocessor), params, config, schema, AstraDB secrets files)
+    - test the entire app

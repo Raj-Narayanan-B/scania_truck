@@ -586,3 +586,5 @@
 [2024-02-09 16:42:11,023: INFO: utils: schema.yaml yaml_file is loaded]
 [2024-02-09 16:45:21,292: INFO: utils: schema.yaml yaml_file is loaded]
 [2024-02-09 17:31:53,603: INFO: utils: pickled_object: artifacts/preprocessor/preprocessor.joblib loaded]
+[2024-02-11 20:29:30,100: INFO: utils: schema.yaml yaml_file is loaded]
+[2024-02-11 20:30:14,460: INFO: utils: schema.yaml yaml_file is loaded]

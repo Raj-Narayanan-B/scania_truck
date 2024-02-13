@@ -25,9 +25,9 @@ class Training_Pipeline(model_trainer_component):
 
 
 training_pipeline_obj = Training_Pipeline()
-training_pipeline_obj.data_ingestion_()
-training_pipeline_obj.initial_processing_()
-training_pipeline_obj.data_splitting_()
+# training_pipeline_obj.data_ingestion_()
+# training_pipeline_obj.initial_processing_()
+# training_pipeline_obj.data_splitting_()
 training_pipeline_obj.final_processing_()
-training_pipeline_obj.models_tuning_()
-training_pipeline_obj.model_training_()
+# training_pipeline_obj.models_tuning_()
+# training_pipeline_obj.model_training_()

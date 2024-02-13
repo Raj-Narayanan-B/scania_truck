@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <title>B-Series: Scania Truck Prediction</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
+
+    <!-- Favicons -->
+    <link href="../static/img/favicon.png" rel="icon">
+    <link href="../static/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i|Raleway:300,400,500,700,800"
+        rel="stylesheet">
+
+    <!-- Vendor CSS Files -->
+    <link href="../static/vendor/aos/aos.css" rel="stylesheet">
+    <link href="../static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="../static/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+    <link href="../static/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+    <!-- Template Main CSS File -->
+    <link href="../static/css/style.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- ======= Contact Section ======= -->
+    <section id="contact">
+        <div class="container" data-aos="fade-up">
+            <div class="row">
+                <div class="col-md-12">
+                    <h3 class="section-title">B-Series</h3>
+                    <div class="section-title-divider"></div>
+                    <p class="section-description">You are entering B-Series fields</p>
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-5 col-md-8">
+                    <div class="form">
+                        <form action="{{ url_for('b_series')}}" method="post" class="php-email-form">
+
+                            <!-- Matrix of 35 text boxes (5x7) -->
+                            <div class="form-group mt-3">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ba_000"
+                                            class="form-control" id="ba_000" placeholder="ba_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ba_001"
+                                            class="form-control" id="ba_001" placeholder="ba_001" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ba_002"
+                                            class="form-control" id="ba_002" placeholder="ba_002" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ba_003"
+                                            class="form-control" id="ba_003" placeholder="ba_003" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-3">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ba_004"
+                                            class="form-control" id="ba_004" placeholder="ba_004" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ba_005"
+                                            class="form-control" id="ba_005" placeholder="ba_005" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ba_006"
+                                            class="form-control" id="ba_006" placeholder="ba_006" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ba_007"
+                                            class="form-control" id="ba_007" placeholder="ba_007" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-3">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ba_008"
+                                            class="form-control" id="ba_008" placeholder="ba_008" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ba_009"
+                                            class="form-control" id="ba_009" placeholder="ba_009" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bb_000"
+                                            class="form-control" id="bb_000" placeholder="bb_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bc_000"
+                                            class="form-control" id="bc_000" placeholder="bc_000" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-3">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bd_000"
+                                            class="form-control" id="bd_000" placeholder="bd_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="be_000"
+                                            class="form-control" id="be_000" placeholder="be_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bf_000"
+                                            class="form-control" id="bf_000" placeholder="bf_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bg_000"
+                                            class="form-control" id="bg_000" placeholder="bg_000" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-3">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bh_000"
+                                            class="form-control" id="bh_000" placeholder="bh_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bi_000"
+                                            class="form-control" id="bi_000" placeholder="bi_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bj_000"
+                                            class="form-control" id="bj_000" placeholder="bj_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bk_000"
+                                            class="form-control" id="bk_000" placeholder="bk_000" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-3">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bl_000"
+                                            class="form-control" id="bl_000" placeholder="bl_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bm_000"
+                                            class="form-control" id="bm_000" placeholder="bm_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bn_000"
+                                            class="form-control" id="bn_000" placeholder="bn_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bo_000"
+                                            class="form-control" id="bo_000" placeholder="bo_000" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-3">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bp_000"
+                                            class="form-control" id="bp_000" placeholder="bp_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bq_000"
+                                            class="form-control" id="bq_000" placeholder="bq_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="br_000"
+                                            class="form-control" id="br_000" placeholder="br_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bs_000"
+                                            class="form-control" id="bs_000" placeholder="bs_000" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-3">
+                                <div class="row">
+
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bt_000"
+                                            class="form-control" id="bt_000" placeholder="bt_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bu_000"
+                                            class="form-control" id="bu_000" placeholder="bu_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bv_000"
+                                            class="form-control" id="bv_000" placeholder="bv_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bx_000"
+                                            class="form-control" id="bx_000" placeholder="bx_000" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-3">
+                                <div class="row">
+
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="by_000"
+                                            class="form-control" id="by_000" placeholder="by_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="bz_000"
+                                            class="form-control" id="bz_000" placeholder="bz_000" required>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+                            <div class="my-3">
+                                <div class="loading">Loading</div>
+                                <div class="error-message"></div>
+                                <div class="sent-message">B Series Submitted!</div>
+                            </div>
+
+                            <div class="text-center"><button type="submit">Submit & Proceed to C-Series</button></div>
+                            <p></p>
+                        </form>
+                        <div class="text-center"><a href="{{url_for('home_page')}}"><button
+                                    type="submit">Home</button></a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section><!-- End Contact Section -->
+
+
+    <div id="preloader"></div>
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
+            class="bi bi-arrow-up-short"></i></a>
+
+    <!-- Vendor JS Files -->
+    <script src="../static/vendor/aos/aos.js"></script>
+    <script src="../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../static/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="../static/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+    <script src="../static/vendor/swiper/swiper-bundle.min.js"></script>
+    <script src="../static/vendor/typed.js/typed.umd.js"></script>
+
+    <!-- Template Main JS File -->
+    <script src="../static/js/main.js"></script>
+
+</body>
+
+</html>

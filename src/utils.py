@@ -40,7 +40,7 @@ from box import ConfigBox
 from pathlib import Path  # type: ignore
 import numpy as np
 import pandas as pd
-exp_count = 291
+exp_count = 292
 ML_Model = NewType('Machine_Learning_Model', object)
 
 w.filterwarnings('ignore')
@@ -258,7 +258,7 @@ def stage_2_processing_function(dataframe: pd.DataFrame) -> pd.DataFrame:
         # logger.info(f"Creating y - target")
 
         logger.info("Commencing pipeline transformation")
-        X_transformed = pipeline.fit_transform(X=X, y=y)
+        X_transformed = pipeline.fit_transform(X=X)
         logger.info("Pipeline transformation complete")
 
         logger.info("Commencing SmoteTomek")

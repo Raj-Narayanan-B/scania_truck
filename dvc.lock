@@ -3,7 +3,7 @@ stages:
   pip_requirements:
     cmd: pip install -r requirements.txt
   stage_1_processing:
-    cmd: python src/pipeline/training_pipeline.py training_pipeline_obj.training_pipeline.initial_processing
+    cmd: python src/pipeline/training_pipeline.py training_pipeline_obj.initial_processing_
     deps:
     - path: artifacts/data/raw/test_data_1.csv
       hash: md5

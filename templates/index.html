@@ -1,8 +1,151 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
-<body>
-    Welcome to Scania Truck Prediction
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <title>Scania Truck Prediction</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
+
+    <!-- Favicons -->
+    <link href="../static/img/favicon.png" rel="icon">
+    <link href="../static/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i|Raleway:300,400,500,700,800"
+        rel="stylesheet">
+
+    <!-- Vendor CSS Files -->
+    <link href="../static/vendor/aos/aos.css" rel="stylesheet">
+    <link href="../static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="../static/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+    <link href="../static/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+    <!-- Template Main CSS File -->
+    <link href="../static/css/style.css" rel="stylesheet">
+
+</head>
+
+<body class="toggle-sidebar">
+    <header id="header" class="header fixed-top d-flex align-items-center">
+
+        <div class="d-flex align-items-center justify-content-between">
+            <a class="logo d-flex align-items-center">
+                <img src="../static/img/scania_truck_logo2.png" alt="">
+                <span class="d-none d-lg-block">Menu</span>
+            </a>
+            <i class="bi bi-list toggle-sidebar-btn"></i>
+        </div><!-- End Logo -->
+
+    </header><!-- End Header -->
+
+    <!-- ======= Hero Section ======= -->
+    <section id="hero">
+
+        <div class="hero-container">
+            <div data-aos="fade-in">
+                <div class="hero-logo">
+                    <img class="" src="../static/img/Scania Truck Failure1.png" alt="Imperial">
+                </div>
+
+                <h1>Welcome to Scania Truck Failures Prediction</h1>
+                <h2>This app predicts failures for scania trucks using <span class="typed"
+                        data-typed-items="online data, bulk data"></span></h2>
+                <div class="actions">
+                    <i class="bi bi-list toggle-sidebar-btn"></i>
+                    <!-- <a href="A_series.html" class="btn-online-prediction">Online Prediction</a>
+                    <a href="#services" class="btn-bulk-prediction">Bulk Prediction</a> -->
+
+                </div>
+
+            </div>
+
+        </div>
+    </section><!-- End Hero -->
+
+
+    <aside id="sidebar" class="sidebar">
+
+        <ul class="sidebar-nav" id="sidebar-nav">
+
+            <li class="nav-item">
+                <a class="nav-link " href="index.html">
+                    <i class="bi bi-grid"></i>
+                    <span>Home</span>
+                </a>
+            </li><!-- End Dashboard Nav -->
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
+                    <i class="bi bi-menu-button-wide"></i><span>Online Prediction</span><i
+                        class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <ul id="components-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                    <li>
+                        <a href="{{ url_for('a_series')}}">
+                            <i class="bi bi-circle"></i><span>A-Series</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('b_series')}}">
+                            <i class="bi bi-circle"></i><span>B-Series</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('c_series')}}">
+                            <i class="bi bi-circle"></i><span>C-Series</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('d_series')}}">
+                            <i class="bi bi-circle"></i><span>D-Series</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('e_series')}}">
+                            <i class="bi bi-circle"></i><span>E-Series</span>
+                        </a>
+                    </li>
+                </ul>
+            </li><!-- End Components Nav -->
+
+            <li class="nav-item">
+                <a class="nav-link " href="{{ url_for('predict')}}"">
+                    <i class=" bi bi-grid"></i>
+                    <span>Bulk / Batch Prediction</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="users-profile.html">
+                    <i class="bi bi-person"></i>
+                    <span>Apache Air Flow Server</span>
+                </a>
+            </li><!-- End Profile Page Nav -->
+
+        </ul>
+
+    </aside><!-- End Sidebar-->
+
+    <div id="preloader"></div>
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
+            class="bi bi-arrow-up-short"></i></a>
+
+    <!-- Vendor JS Files -->
+    <script src="../static/vendor/aos/aos.js"></script>
+    <script src="../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../static/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="../static/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+    <script src="../static/vendor/swiper/swiper-bundle.min.js"></script>
+    <script src="../static/vendor/typed.js/typed.umd.js"></script>
+
+    <!-- Template Main JS File -->
+    <script src="../static/js/main.js"></script>
+
 </body>
-
 
 </html>

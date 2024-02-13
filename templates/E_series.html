@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <title>E-Series: Scania Truck Prediction</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
+
+    <!-- Favicons -->
+    <link href="../static/img/favicon.png" rel="icon">
+    <link href="../static/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i|Raleway:300,400,500,700,800"
+        rel="stylesheet">
+
+    <!-- Vendor CSS Files -->
+    <link href="../static/vendor/aos/aos.css" rel="stylesheet">
+    <link href="../static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="../static/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+    <link href="../static/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+    <!-- Template Main CSS File -->
+    <link href="../static/css/style.css" rel="stylesheet">
+
+</head>
+
+<body>
+    <!-- ======= Contact Section ======= -->
+    <section id="contact">
+        <div class="container" data-aos="fade-up">
+            <div class="row">
+                <div class="col-md-12">
+                    <h3 class="section-title">E-Series</h3>
+                    <div class="section-title-divider"></div>
+                    <p class="section-description">You are entering E-Series fields</p>
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-5 col-md-8">
+                    <div class="form">
+                        <form action="{{ url_for('e_series')}}" method="post" role="form" class="php-email-form">
+
+                            <!-- Matrix of 35 text boxes (5x7) -->
+                            <div class="form-group mt-3">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ea_000"
+                                            class="form-control" id="ea_000" placeholder="ea_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="eb_000"
+                                            class="form-control" id="eb_000" placeholder="eb_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ec_00"
+                                            class="form-control" id="ec_00" placeholder="ec_00" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ed_000"
+                                            class="form-control" id="ed_000" placeholder="ed_000" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-3">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ee_000"
+                                            class="form-control" id="ee_000" placeholder="ee_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ee_001"
+                                            class="form-control" id="ee_001" placeholder="ee_001" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ee_002"
+                                            class="form-control" id="ee_002" placeholder="ee_002" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ee_003"
+                                            class="form-control" id="ee_003" placeholder="ee_003" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-3">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ee_004"
+                                            class="form-control" id="ee_004" placeholder="ee_004" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ee_005"
+                                            class="form-control" id="ee_005" placeholder="ee_005" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ee_006"
+                                            class="form-control" id="ee_006" placeholder="ee_006" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ee_007"
+                                            class="form-control" id="ee_007" placeholder="ee_007" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-3">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ee_008"
+                                            class="form-control" id="ee_008" placeholder="ee_008" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ee_009"
+                                            class="form-control" id="ee_009" placeholder="ee_009" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="ef_000"
+                                            class="form-control" id="ef_000" placeholder="ef_000" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" style="width: 100px; border-radius: 10px;" name="eg_000"
+                                            class="form-control" id="eg_000" placeholder="eg_000" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="my-3">
+                                <div class="loading">Loading</div>
+                                <div class="error-message"></div>
+                                <div class="sent-message">E Series Submitted!</div>
+                            </div>
+                            <div class="text-center"><button type="submit">Submit & Proceed to Prediction</button></div>
+                            <p></p>
+
+                        </form>
+                        <div class="text-center"><a href="{{url_for('home_page')}}"><button
+                                    type="button">Home</button></a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section><!-- End Contact Section -->
+
+
+    <div id="preloader"></div>
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
+            class="bi bi-arrow-up-short"></i></a>
+
+    <!-- Vendor JS Files -->
+    <script src="../static/vendor/aos/aos.js"></script>
+    <script src="../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../static/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="../static/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+    <script src="../static/vendor/swiper/swiper-bundle.min.js"></script>
+    <script src="../static/vendor/typed.js/typed.umd.js"></script>
+
+    <!-- Template Main JS File -->
+    <script src="../static/js/main.js"></script>
+
+</body>
+
+</html>
