@@ -588,3 +588,363 @@
 [2024-02-09 17:31:53,603: INFO: utils: pickled_object: artifacts/preprocessor/preprocessor.joblib loaded]
 [2024-02-11 20:29:30,100: INFO: utils: schema.yaml yaml_file is loaded]
 [2024-02-11 20:30:14,460: INFO: utils: schema.yaml yaml_file is loaded]
+[2024-02-13 07:41:38,543: INFO: utils: pickled_object: artifacts\preprocessor\preprocessor.joblib loaded]
+[2024-02-13 22:56:15,735: ERROR: wrapper: [Errno 2] No such file or directory: 'F:\\iNeuron\\Projects\\Scania_Truck_Failures\\data']
+[2024-02-13 22:58:24,113: INFO: helpers: Uploading files (1) to "Raj-Narayanan-B/scania_truck"...]
+[2024-02-13 22:58:51,541: INFO: helpers: Upload finished successfully!]
+[2024-02-13 23:12:30,476: INFO: helpers: Uploading files (1) to "Raj-Narayanan-B/scania_truck"...]
+[2024-02-13 23:12:37,711: INFO: helpers: Upload finished successfully!]
+[2024-02-13 23:15:02,480: INFO: requests: >>> {"query": "query datasource($id: ID, $name: String) {\n  datasource(id: $id, name: $name) {\n    id\n    name\n    rootUrl\n    integrationStatus\n    preprocessingStatus\n    metadataFields {\n      name\n      valueType\n      multiple\n      tags\n    }\n    type\n  }\n}", "variables": {"id": null, "name": "my-datasource"}}]
+[2024-02-13 23:15:03,282: INFO: requests: <<< {"data":{"datasource":[]}}]
+[2024-02-13 23:15:03,284: INFO: requests: >>> {"query": "mutation createDatasource($name: String!, $url: String!, $dsType: DatasourceType!) {\n  createDatasource(name: $name, url: $url, dsType: $dsType) {\n    id\n    name\n    rootUrl\n    integrationStatus\n    preprocessingStatus\n    type\n  }\n}", "variables": {"name": "my-datasource", "url": "repo://Raj-Narayanan-B/scania_truck/main:artifacts/data/raw/test_data_1.csv", "dsType": "REPOSITORY"}}]
+[2024-02-13 23:15:04,011: INFO: requests: <<< {"data":{"createDatasource":{"id":1224,"name":"my-datasource","rootUrl":"repo://Raj-Narayanan-B/scania_truck/main:artifacts/data/raw/test_data_1.csv","integrationStatus":"VALID","preprocessingStatus":"IN_PROGRESS","type":"REPOSITORY"}}}]
+[2024-02-13 23:17:13,585: INFO: requests: >>> {"query": "query datasource($id: ID, $name: String) {\n  datasource(id: $id, name: $name) {\n    id\n    name\n    rootUrl\n    integrationStatus\n    preprocessingStatus\n    metadataFields {\n      name\n      valueType\n      multiple\n      tags\n    }\n    type\n  }\n}", "variables": {"id": 1224, "name": "my-datasource"}}]
+[2024-02-13 23:17:14,251: INFO: requests: <<< {"data":{"datasource":[{"id":1224,"name":"my-datasource","rootUrl":"repo://Raj-Narayanan-B/scania_truck/main:artifacts/data/raw/test_data_1.csv","integrationStatus":"VALID","preprocessingStatus":"IN_PROGRESS","metadataFields":[{"name":"size","valueType":"INTEGER","multiple":false,"tags":null}],"type":"REPOSITORY"}]}}]
+[2024-02-13 23:17:14,257: WARNING: datasource: Datasource my-datasource is currently in the progress of rescanning. Values might change if you requery later]
+[2024-02-13 23:17:14,938: INFO: requests: >>> {"query": "query datasourceQuery($datasource: ID!, $queryInput: QueryInput, $first: Int, $after: String) {\n  datasourceQuery(\n    datasource: $datasource\n    filter: $queryInput\n    first: $first\n    after: $after\n  ) {\n    edges {\n      node {\n        id\n        path\n        metadata {\n          key\n          value\n        }\n      }\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}", "variables": {"datasource": 1224, "queryInput": {"query": null}, "first": 100, "after": null}}]
+[2024-02-13 23:17:15,727: INFO: requests: <<< {"data":{"datasourceQuery":{"edges":[{"node":{"id":67483225,"path":"artifacts/data/raw/test_data_1.csv","metadata":[{"key":"size","value":5082459}]}}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}}]
+[2024-02-13 23:17:37,125: INFO: requests: >>> {"query": "query datasource($id: ID, $name: String) {\n  datasource(id: $id, name: $name) {\n    id\n    name\n    rootUrl\n    integrationStatus\n    preprocessingStatus\n    metadataFields {\n      name\n      valueType\n      multiple\n      tags\n    }\n    type\n  }\n}", "variables": {"id": 1224, "name": "my-datasource"}}]
+[2024-02-13 23:17:37,848: INFO: requests: <<< {"data":{"datasource":[{"id":1224,"name":"my-datasource","rootUrl":"repo://Raj-Narayanan-B/scania_truck/main:artifacts/data/raw/test_data_1.csv","integrationStatus":"VALID","preprocessingStatus":"READY","metadataFields":[{"name":"size","valueType":"INTEGER","multiple":false,"tags":null}],"type":"REPOSITORY"}]}}]
+[2024-02-13 23:17:37,862: INFO: requests: >>> {"query": "query datasourceQuery($datasource: ID!, $queryInput: QueryInput, $first: Int, $after: String) {\n  datasourceQuery(\n    datasource: $datasource\n    filter: $queryInput\n    first: $first\n    after: $after\n  ) {\n    edges {\n      node {\n        id\n        path\n        metadata {\n          key\n          value\n        }\n      }\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}", "variables": {"datasource": 1224, "queryInput": {"query": null}, "first": 100, "after": null}}]
+[2024-02-13 23:17:38,611: INFO: requests: <<< {"data":{"datasourceQuery":{"edges":[{"node":{"id":67483225,"path":"artifacts/data/raw/test_data_1.csv","metadata":[{"key":"size","value":5082459}]}}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}}]
+[2024-02-13 23:18:01,482: INFO: requests: >>> {"query": "query datasource($id: ID, $name: String) {\n  datasource(id: $id, name: $name) {\n    id\n    name\n    rootUrl\n    integrationStatus\n    preprocessingStatus\n    metadataFields {\n      name\n      valueType\n      multiple\n      tags\n    }\n    type\n  }\n}", "variables": {"id": 1224, "name": "my-datasource"}}]
+[2024-02-13 23:18:02,238: INFO: requests: <<< {"data":{"datasource":[{"id":1224,"name":"my-datasource","rootUrl":"repo://Raj-Narayanan-B/scania_truck/main:artifacts/data/raw/test_data_1.csv","integrationStatus":"VALID","preprocessingStatus":"READY","metadataFields":[{"name":"size","valueType":"INTEGER","multiple":false,"tags":null}],"type":"REPOSITORY"}]}}]
+[2024-02-13 23:18:02,245: INFO: requests: >>> {"query": "query datasourceQuery($datasource: ID!, $queryInput: QueryInput, $first: Int, $after: String) {\n  datasourceQuery(\n    datasource: $datasource\n    filter: $queryInput\n    first: $first\n    after: $after\n  ) {\n    edges {\n      node {\n        id\n        path\n        metadata {\n          key\n          value\n        }\n      }\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}", "variables": {"datasource": 1224, "queryInput": {"query": null}, "first": 100, "after": null}}]
+[2024-02-13 23:18:03,019: INFO: requests: <<< {"data":{"datasourceQuery":{"edges":[{"node":{"id":67483225,"path":"artifacts/data/raw/test_data_1.csv","metadata":[{"key":"size","value":5082459}]}}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}}]
+[2024-02-13 23:24:37,024: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 00:03:24,190: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 00:06:03,327: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 00:06:10,972: INFO: utils: config.yaml yaml_file is loaded]
+[2024-02-14 00:06:11,004: INFO: utils: params.yaml yaml_file is loaded]
+[2024-02-14 00:06:11,030: INFO: utils: schema.yaml yaml_file is loaded]
+[2024-02-14 00:06:19,605: INFO: utils: config.yaml yaml_file is loaded]
+[2024-02-14 00:06:19,609: INFO: utils: params.yaml yaml_file is loaded]
+[2024-02-14 00:06:19,618: INFO: utils: schema.yaml yaml_file is loaded]
+[2024-02-14 00:06:33,318: INFO: utils: config.yaml yaml_file is loaded]
+[2024-02-14 00:06:33,322: INFO: utils: params.yaml yaml_file is loaded]
+[2024-02-14 00:06:33,327: INFO: utils: schema.yaml yaml_file is loaded]
+[2024-02-14 00:06:45,110: INFO: utils: config.yaml yaml_file is loaded]
+[2024-02-14 00:06:45,114: INFO: utils: params.yaml yaml_file is loaded]
+[2024-02-14 00:06:45,124: INFO: utils: schema.yaml yaml_file is loaded]
+[2024-02-14 00:06:54,973: INFO: utils: config.yaml yaml_file is loaded]
+[2024-02-14 00:06:54,977: INFO: utils: params.yaml yaml_file is loaded]
+[2024-02-14 00:06:54,983: INFO: utils: schema.yaml yaml_file is loaded]
+[2024-02-14 00:06:59,913: INFO: utils: config.yaml yaml_file is loaded]
+[2024-02-14 00:06:59,916: INFO: utils: params.yaml yaml_file is loaded]
+[2024-02-14 00:06:59,922: INFO: utils: schema.yaml yaml_file is loaded]
+[2024-02-14 00:07:07,412: INFO: utils: config.yaml yaml_file is loaded]
+[2024-02-14 00:07:07,416: INFO: utils: params.yaml yaml_file is loaded]
+[2024-02-14 00:07:07,424: INFO: utils: schema.yaml yaml_file is loaded]
+[2024-02-14 00:07:24,361: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 00:09:34,495: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 08:01:01,906: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 08:29:29,079: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 08:30:03,420: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 09:12:46,697: INFO: policies: Using datacenter 'asia-south1' for DCAwareRoundRobinPolicy (via host 'dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:936f0372-678a-4a5a-988f-662ddffa8994'); if incorrect, please specify a local_dc to the constructor, or limit contact points to local cluster nodes]
+[2024-02-14 10:49:18,723: WARNING: threading: Heartbeat failed for connection (2080869262096) to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:b65bc60a-7f95-4883-8968-da971550dd57]
+[2024-02-14 10:49:18,748: WARNING: thread: Host dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:b65bc60a-7f95-4883-8968-da971550dd57 has been marked down]
+[2024-02-14 10:49:24,780: WARNING: thread: Error attempting to reconnect to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:b65bc60a-7f95-4883-8968-da971550dd57, scheduling retry in 1.86 seconds: errors=Timed out creating connection (5 seconds), last_host=None]
+[2024-02-14 10:49:31,699: WARNING: thread: Error attempting to reconnect to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:b65bc60a-7f95-4883-8968-da971550dd57, scheduling retry in 4.52 seconds: errors=Timed out creating connection (5 seconds), last_host=None]
+[2024-02-14 10:49:41,247: WARNING: thread: Error attempting to reconnect to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:b65bc60a-7f95-4883-8968-da971550dd57, scheduling retry in 7.28 seconds: errors=Timed out creating connection (5 seconds), last_host=None]
+[2024-02-14 10:49:53,621: WARNING: thread: Error attempting to reconnect to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:b65bc60a-7f95-4883-8968-da971550dd57, scheduling retry in 14.24 seconds: errors=Timed out creating connection (5 seconds), last_host=None]
+[2024-02-14 10:50:12,961: WARNING: thread: Error attempting to reconnect to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:b65bc60a-7f95-4883-8968-da971550dd57, scheduling retry in 36.8 seconds: errors=Timed out creating connection (5 seconds), last_host=None]
+[2024-02-14 10:50:54,839: WARNING: thread: Error attempting to reconnect to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:b65bc60a-7f95-4883-8968-da971550dd57, scheduling retry in 56.96 seconds: errors=Timed out creating connection (5 seconds), last_host=None]
+[2024-02-14 10:51:29,269: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 10:51:54,898: INFO: thread: New Cassandra host <Host: dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:0845f8a7-9ca4-47a2-a5a8-996780212f17 asia-south1> discovered]
+[2024-02-14 10:51:56,268: INFO: thread: Cassandra host dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:b65bc60a-7f95-4883-8968-da971550dd57 removed]
+[2024-02-14 10:51:56,868: WARNING: thread: Error attempting to reconnect to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:b65bc60a-7f95-4883-8968-da971550dd57, scheduling retry in 125.44 seconds: errors=Timed out creating connection (5 seconds), last_host=None]
+[2024-02-14 10:54:33,434: INFO: policies: Using datacenter 'asia-south1' for DCAwareRoundRobinPolicy (via host 'dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:99b0aec6-15d3-4be8-8fa0-3e370934f2df'); if incorrect, please specify a local_dc to the constructor, or limit contact points to local cluster nodes]
+[2024-02-14 10:56:04,592: ERROR: 1803083525: Error preparing query for host dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:936f0372-678a-4a5a-988f-662ddffa8994:]
+Traceback (most recent call last):
+  File "cassandra\cluster.py", line 3180, in cassandra.cluster.Session.prepare_on_all_hosts
+  File "cassandra\cluster.py", line 4956, in cassandra.cluster.ResponseFuture.result
+cassandra.OperationTimedOut: errors={'Connection defunct by heartbeat': 'Client request timeout. See Session.execute[_async](timeout)'}, last_host=dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:936f0372-678a-4a5a-988f-662ddffa8994
+[2024-02-14 10:56:34,214: WARNING: threading: Heartbeat failed for connection (2078964162512) to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:936f0372-678a-4a5a-988f-662ddffa8994]
+[2024-02-14 10:56:34,260: WARNING: thread: Host dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:936f0372-678a-4a5a-988f-662ddffa8994 has been marked down]
+[2024-02-14 10:56:42,883: WARNING: thread: Error attempting to reconnect to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:936f0372-678a-4a5a-988f-662ddffa8994, scheduling retry in 2.26 seconds: errors=Timed out creating connection (5 seconds), last_host=None]
+[2024-02-14 10:56:50,201: WARNING: thread: Error attempting to reconnect to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:936f0372-678a-4a5a-988f-662ddffa8994, scheduling retry in 4.16 seconds: errors=Timed out creating connection (5 seconds), last_host=None]
+[2024-02-14 10:56:59,446: WARNING: thread: Error attempting to reconnect to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:936f0372-678a-4a5a-988f-662ddffa8994, scheduling retry in 8.4 seconds: errors=Timed out creating connection (5 seconds), last_host=None]
+[2024-02-14 10:57:12,548: INFO: thread: Successful reconnection to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:936f0372-678a-4a5a-988f-662ddffa8994, marking node up if it isn't already]
+[2024-02-14 10:57:12,552: INFO: thread: Host dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:936f0372-678a-4a5a-988f-662ddffa8994 may be up; will prepare queries and open connection pool]
+[2024-02-14 10:57:19,142: WARNING: thread: Failed to create connection pool for new host dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:936f0372-678a-4a5a-988f-662ddffa8994:]
+Traceback (most recent call last):
+  File "cassandra\cluster.py", line 3234, in cassandra.cluster.Session.add_or_renew_pool.run_add_or_renew_pool
+  File "cassandra\pool.py", line 406, in cassandra.pool.HostConnection.__init__
+  File "cassandra\cluster.py", line 1670, in cassandra.cluster.Cluster.connection_factory
+  File "cassandra\connection.py", line 855, in cassandra.connection.Connection.factory
+cassandra.OperationTimedOut: errors=Timed out creating connection (5 seconds), last_host=None
+[2024-02-14 10:57:22,072: INFO: thread: Successful reconnection to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:936f0372-678a-4a5a-988f-662ddffa8994, marking node up if it isn't already]
+[2024-02-14 10:57:22,074: INFO: thread: Host dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:936f0372-678a-4a5a-988f-662ddffa8994 may be up; will prepare queries and open connection pool]
+[2024-02-14 10:57:25,117: INFO: _base: Connection pools established for node dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:936f0372-678a-4a5a-988f-662ddffa8994]
+[2024-02-14 10:57:36,857: WARNING: threading: Heartbeat failed for connection (2078964160208) to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:0845f8a7-9ca4-47a2-a5a8-996780212f17]
+[2024-02-14 10:57:36,860: WARNING: thread: Host dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:0845f8a7-9ca4-47a2-a5a8-996780212f17 has been marked down]
+[2024-02-14 10:57:45,501: WARNING: thread: Error attempting to reconnect to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:0845f8a7-9ca4-47a2-a5a8-996780212f17, scheduling retry in 1.98 seconds: errors=Timed out creating connection (5 seconds), last_host=None]
+[2024-02-14 10:57:52,532: WARNING: thread: Error attempting to reconnect to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:0845f8a7-9ca4-47a2-a5a8-996780212f17, scheduling retry in 4.6 seconds: errors=Timed out creating connection (5 seconds), last_host=None]
+[2024-02-14 10:58:32,262: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 10:58:40,747: WARNING: 1027870766: [control connection] Error connecting to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:936f0372-678a-4a5a-988f-662ddffa8994:]
+Traceback (most recent call last):
+  File "cassandra\cluster.py", line 3577, in cassandra.cluster.ControlConnection._reconnect_internal
+  File "cassandra\cluster.py", line 3654, in cassandra.cluster.ControlConnection._try_connect
+  File "cassandra\cluster.py", line 3646, in cassandra.cluster.ControlConnection._try_connect
+  File "cassandra\connection.py", line 1082, in cassandra.connection.Connection.wait_for_response
+  File "cassandra\connection.py", line 1126, in cassandra.connection.Connection.wait_for_responses
+  File "cassandra\connection.py", line 1124, in cassandra.connection.Connection.wait_for_responses
+  File "cassandra\connection.py", line 1636, in cassandra.connection.ResponseWaiter.deliver
+cassandra.OperationTimedOut: errors=None, last_host=None
+[2024-02-14 10:58:45,768: WARNING: 1027870766: [control connection] Error connecting to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:99b0aec6-15d3-4be8-8fa0-3e370934f2df:]
+Traceback (most recent call last):
+  File "cassandra\cluster.py", line 3577, in cassandra.cluster.ControlConnection._reconnect_internal
+  File "cassandra\cluster.py", line 3599, in cassandra.cluster.ControlConnection._try_connect
+  File "cassandra\cluster.py", line 1670, in cassandra.cluster.Cluster.connection_factory
+  File "cassandra\connection.py", line 855, in cassandra.connection.Connection.factory
+cassandra.OperationTimedOut: errors=Timed out creating connection (5 seconds), last_host=None
+[2024-02-14 10:58:45,913: WARNING: 1027870766: [control connection] Error connecting to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:0845f8a7-9ca4-47a2-a5a8-996780212f17:]
+Traceback (most recent call last):
+  File "cassandra\cluster.py", line 3577, in cassandra.cluster.ControlConnection._reconnect_internal
+  File "cassandra\cluster.py", line 3599, in cassandra.cluster.ControlConnection._try_connect
+  File "cassandra\cluster.py", line 1670, in cassandra.cluster.Cluster.connection_factory
+  File "cassandra\connection.py", line 852, in cassandra.connection.Connection.factory
+cassandra.connection.ConnectionShutdown: Connection to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:0845f8a7-9ca4-47a2-a5a8-996780212f17 was closed
+[2024-02-14 10:58:45,921: WARNING: thread: Host dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:0845f8a7-9ca4-47a2-a5a8-996780212f17 has been marked down]
+[2024-02-14 10:58:45,922: ERROR: 1027870766: Control connection failed to connect, shutting down Cluster:]
+Traceback (most recent call last):
+  File "cassandra\cluster.py", line 1740, in cassandra.cluster.Cluster.connect
+  File "cassandra\cluster.py", line 3543, in cassandra.cluster.ControlConnection.connect
+  File "cassandra\cluster.py", line 3588, in cassandra.cluster.ControlConnection._reconnect_internal
+cassandra.cluster.NoHostAvailable: ('Unable to connect to any servers', {'dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:936f0372-678a-4a5a-988f-662ddffa8994': OperationTimedOut('errors=None, last_host=None'), 'dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:99b0aec6-15d3-4be8-8fa0-3e370934f2df': OperationTimedOut('errors=Timed out creating connection (5 seconds), last_host=None'), 'dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:0845f8a7-9ca4-47a2-a5a8-996780212f17': ConnectionShutdown('Connection to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:0845f8a7-9ca4-47a2-a5a8-996780212f17 was closed')})
+[2024-02-14 10:59:05,957: ERROR: __init__: HTTP Error 503: Service Unavailable]
+Traceback (most recent call last):
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\site-packages\cassandra\datastax\cloud\__init__.py", line 137, in read_metadata_info
+    response = urlopen(url, context=config.ssl_context, timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 216, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 525, in open
+    response = meth(req, response)
+               ^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 634, in http_response
+    response = self.parent.error(
+               ^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 563, in error
+    return self._call_chain(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 643, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 503: Service Unavailable
+[2024-02-14 11:03:09,479: ERROR: __init__: HTTP Error 503: Service Unavailable]
+Traceback (most recent call last):
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\site-packages\cassandra\datastax\cloud\__init__.py", line 137, in read_metadata_info
+    response = urlopen(url, context=config.ssl_context, timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 216, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 525, in open
+    response = meth(req, response)
+               ^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 634, in http_response
+    response = self.parent.error(
+               ^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 563, in error
+    return self._call_chain(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 643, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 503: Service Unavailable
+[2024-02-14 11:03:13,021: ERROR: __init__: HTTP Error 503: Service Unavailable]
+Traceback (most recent call last):
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\site-packages\cassandra\datastax\cloud\__init__.py", line 137, in read_metadata_info
+    response = urlopen(url, context=config.ssl_context, timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 216, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 525, in open
+    response = meth(req, response)
+               ^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 634, in http_response
+    response = self.parent.error(
+               ^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 563, in error
+    return self._call_chain(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 643, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 503: Service Unavailable
+[2024-02-14 11:04:03,525: ERROR: __init__: HTTP Error 503: Service Unavailable]
+Traceback (most recent call last):
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\site-packages\cassandra\datastax\cloud\__init__.py", line 137, in read_metadata_info
+    response = urlopen(url, context=config.ssl_context, timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 216, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 525, in open
+    response = meth(req, response)
+               ^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 634, in http_response
+    response = self.parent.error(
+               ^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 563, in error
+    return self._call_chain(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 643, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 503: Service Unavailable
+[2024-02-14 11:04:34,618: ERROR: __init__: HTTP Error 503: Service Unavailable]
+Traceback (most recent call last):
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\site-packages\cassandra\datastax\cloud\__init__.py", line 137, in read_metadata_info
+    response = urlopen(url, context=config.ssl_context, timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 216, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 525, in open
+    response = meth(req, response)
+               ^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 634, in http_response
+    response = self.parent.error(
+               ^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 563, in error
+    return self._call_chain(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 643, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 503: Service Unavailable
+[2024-02-14 11:04:54,873: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 11:05:22,394: ERROR: __init__: HTTP Error 503: Service Unavailable]
+Traceback (most recent call last):
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\site-packages\cassandra\datastax\cloud\__init__.py", line 137, in read_metadata_info
+    response = urlopen(url, context=config.ssl_context, timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 216, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 525, in open
+    response = meth(req, response)
+               ^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 634, in http_response
+    response = self.parent.error(
+               ^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 563, in error
+    return self._call_chain(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 643, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 503: Service Unavailable
+[2024-02-14 11:05:34,039: ERROR: __init__: HTTP Error 503: Service Unavailable]
+Traceback (most recent call last):
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\site-packages\cassandra\datastax\cloud\__init__.py", line 137, in read_metadata_info
+    response = urlopen(url, context=config.ssl_context, timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 216, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 525, in open
+    response = meth(req, response)
+               ^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 634, in http_response
+    response = self.parent.error(
+               ^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 563, in error
+    return self._call_chain(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 643, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 503: Service Unavailable
+[2024-02-14 11:05:53,321: ERROR: __init__: HTTP Error 503: Service Unavailable]
+Traceback (most recent call last):
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\site-packages\cassandra\datastax\cloud\__init__.py", line 137, in read_metadata_info
+    response = urlopen(url, context=config.ssl_context, timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 216, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 525, in open
+    response = meth(req, response)
+               ^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 634, in http_response
+    response = self.parent.error(
+               ^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 563, in error
+    return self._call_chain(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 643, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 503: Service Unavailable
+[2024-02-14 11:07:22,031: INFO: policies: Using datacenter 'asia-south1' for DCAwareRoundRobinPolicy (via host 'dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:c1f25ed5-235a-41b2-b2fa-86681ad73740'); if incorrect, please specify a local_dc to the constructor, or limit contact points to local cluster nodes]
+[2024-02-14 11:07:48,141: INFO: thread: New Cassandra host <Host: dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7 asia-south1> discovered]
+[2024-02-14 11:07:50,151: INFO: thread: New Cassandra host <Host: dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:c64e7aa1-56ea-433f-80db-02dc4d5ead7b asia-south1> discovered]
+[2024-02-14 11:14:22,510: WARNING: threading: Heartbeat failed for connection (2239389510672) to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7]
+[2024-02-14 11:14:22,518: WARNING: thread: Host dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7 has been marked down]
+[2024-02-14 11:14:23,921: INFO: thread: Successful reconnection to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7, marking node up if it isn't already]
+[2024-02-14 11:14:23,922: INFO: thread: Host dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7 may be up; will prepare queries and open connection pool]
+[2024-02-14 11:14:30,333: WARNING: thread: Timed out trying to prepare all statements on host dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7: errors=None, last_host=None]
+[2024-02-14 11:14:31,442: INFO: _base: Connection pools established for node dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7]
+[2024-02-14 11:25:46,367: WARNING: asyncorereactor: Server warning: Batch for {"64616234316332362d326564332d343834612d383365322d376361643834376261393431_sample_keyspace".uploaded_data} is of size 624kB, exceeding specified warning threshold 64kB]
+[2024-02-14 11:25:48,562: WARNING: asyncorereactor: Server warning: Batch for {"64616234316332362d326564332d343834612d383365322d376361643834376261393431_sample_keyspace".uploaded_data} is of size 624kB, exceeding specified warning threshold 64kB]
+[2024-02-14 11:26:24,041: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 11:26:32,357: ERROR: __init__: HTTP Error 503: Service Unavailable]
+Traceback (most recent call last):
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\site-packages\cassandra\datastax\cloud\__init__.py", line 137, in read_metadata_info
+    response = urlopen(url, context=config.ssl_context, timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 216, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 525, in open
+    response = meth(req, response)
+               ^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 634, in http_response
+    response = self.parent.error(
+               ^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 563, in error
+    return self._call_chain(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "f:\iNeuron\Projects\scania_failures_2\scania_truck\Lib\urllib\request.py", line 643, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 503: Service Unavailable
+[2024-02-14 11:55:53,350: WARNING: threading: Heartbeat failed for connection (2239387906640) to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7]
+[2024-02-14 11:55:53,376: WARNING: thread: Host dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7 has been marked down]
+[2024-02-14 11:55:55,071: WARNING: thread: Error attempting to reconnect to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7, scheduling retry in 1.78 seconds: Connection to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7 was closed]
+[2024-02-14 11:55:58,239: WARNING: thread: Error attempting to reconnect to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7, scheduling retry in 3.68 seconds: Connection to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7 was closed]
+[2024-02-14 11:56:02,976: WARNING: thread: Error attempting to reconnect to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7, scheduling retry in 7.2 seconds: Connection to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7 was closed]
+[2024-02-14 11:56:10,841: WARNING: thread: Error attempting to reconnect to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7, scheduling retry in 15.36 seconds: Connection to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7 was closed]
+[2024-02-14 11:56:26,432: WARNING: thread: Error attempting to reconnect to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7, scheduling retry in 35.2 seconds: Connection to dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7 was closed]
+[2024-02-14 11:56:57,822: INFO: thread: New Cassandra host <Host: dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:c078aca7-cb58-41b8-bbcf-f40e9a02f725 asia-south1> discovered]
+[2024-02-14 11:56:57,907: INFO: thread: Cassandra host dab41c26-2ed3-484a-83e2-7cad847ba941-asia-south1.db.astra.datastax.com:29042:d784aa35-c113-4e0d-97ea-0d381dac27b7 removed]
+[2024-02-14 17:29:54,586: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 17:34:06,105: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 18:26:10,955: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 19:41:30,951: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 19:41:44,498: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 19:43:50,916: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]
+[2024-02-14 19:56:41,300: INFO: helpers: Client created. Use the name of the repo (scania_truck) as the name of the bucket]

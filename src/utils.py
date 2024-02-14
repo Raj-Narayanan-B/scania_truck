@@ -36,6 +36,9 @@ import yaml
 import joblib
 import re  # type: ignore
 import os
+import glob  # type: ignore
+import shutil  # type: ignore
+import subprocess  # type: ignore
 from box import ConfigBox
 from pathlib import Path  # type: ignore
 import numpy as np
@@ -44,8 +47,6 @@ exp_count = 292
 ML_Model = NewType('Machine_Learning_Model', object)
 
 w.filterwarnings('ignore')
-
-trial_number = 0
 
 
 def load_yaml(filepath: Path):
@@ -138,12 +139,112 @@ def make_synthetic_data_for_unit_testing():
     return sample_df
 
 
-def DB_data_loader(config: list):
+def DB_data_uploader(config: list):
+    main_data_path = config[0][0]
+    logger.info(f"{main_data_path} is the main data path")
+
+    file_path, file = os.path.split(main_data_path)
+    df = pd.read_csv(main_data_path)
+    if file == 'training_data.csv':
+        range_ = 60001
+        logger.info(f"{range_} is the range")
+    else:
+        range_ = 16001
+        logger.info(f"{range_} is the range")
+
+    df_1 = df.iloc[:, :74]
+    df_1['ident_id'] = range(1, range_)
+    df_1.to_csv(config[1][4], index=False)
+    logger.info(f"{file.split('.')[0]}_1 saved in temp folder")
+
+    df_2 = df.iloc[:, 74:148]
+    df_2['ident_id'] = range(1, range_)
+    df_2.to_csv(config[2][4], index=False)
+    logger.info(f"{file.split('.')[0]}_2 saved in temp folder")
+
+    df_3 = df.iloc[:, 148:]
+    df_3['ident_id'] = range(1, range_)
+    df_3.to_csv(config[3][4], index=False)
+    logger.info(f"{file.split('.')[0]}_3 saved in temp folder")
+
+    for i in list(range(1, 4)):
+        data_db_config = config[i]
+        token = data_db_config[1]
+        logger.info("Token loaded")
+        # print(token)
+
+        with open(token) as json_file:
+            secrets = json.load(json_file)
+            # logger.info(f"{config[1]} json file is loaded")
+
+        secure_connect_bundle = data_db_config[0]
+        logger.info("Secure Connect Bundle loaded")
+        # print(secure_connect_bundle)
+
+        cloud_config = {'secure_connect_bundle': secure_connect_bundle,
+                        'connect_timeout': None}
+        # print(f"cloud_config: {cloud_config}")
+        CLIENT_ID = secrets["clientId"]
+        # print(CLIENT_ID)
+        CLIENT_SECRET = secrets["secret"]
+        # print(CLIENT_SECRET)
+        auth_provider = PlainTextAuthProvider(CLIENT_ID, CLIENT_SECRET)
+        cluster = Cluster(cloud=cloud_config,
+                          auth_provider=auth_provider,
+                          protocol_version=4)
+        session = cluster.connect()
+        logger.info("Cluster connected")
+
+        data_df_path = data_db_config[4]
+        data_df = pd.read_csv(data_df_path)
+        # print(data_df)
+
+        # Define keyspace name and table name
+        keyspace = data_db_config[2]
+        table_name = data_db_config[3]
+        logger.info("Keyspace & Table_name defined")
+        # print("Keyspace", keyspace)
+        # print("Table_name", table_name)
+
+        colums_types_dict_from_data_df = dict(zip(list(data_df.columns), list(data_df.dtypes.replace({'object': 'text', 'int64': 'int'}).values)))
+        columns = ', '.join([f"{key} {value}" for key, value in colums_types_dict_from_data_df.items()])
+        create_table_statement = f"CREATE TABLE IF NOT EXISTS {keyspace}.{table_name} ({columns}, PRIMARY KEY (ident_id));"
+        session.execute(create_table_statement)
+        logger.info("Table created")
+
+        dsbulk_command = [
+            "dsbulk",
+            "load",
+            "-url", data_df_path,
+            "-k", keyspace,
+            "-t", table_name,
+            "-b", secure_connect_bundle,
+            "-u", CLIENT_ID,
+            "-p", CLIENT_SECRET,
+        ]
+        result = subprocess.run(dsbulk_command, shell=True)
+        file_path, file_ = os.path.split(data_df_path)
+        logger.info(f"{file_} uploaded successfully")
+        print(f"Return code: {result.returncode}")
+        print(f"Standard output: {result.stdout}")
+        print(f"Standard error: {result.stderr}\n\n")
+    logger.info(f"The entire {file} is uploaded successfully in batches")
+
+    # Removal of log files created by DSbulk
+    directory_path = "logs"
+    pattern = os.path.join(directory_path, "LOAD*")
+    files_to_remove = glob.glob(pattern)
+    for file_path in files_to_remove:
+        shutil.rmtree(file_path)
+        logger.info(f"Removed : {file_path}")
+
+
+def DB_data_downloader(config: list):
     with open(config[1]) as f:
         secrets = json.load(f)
         logger.info(f"{config[1]} json file is loaded")
 
-    cloud_config = {list(config[0].keys())[0]: list(config[0].values())[0],
+    cloud_config = {'secure_connect_bundle': config[0],
                     'connect_timeout': None}
     print(f"cloud_config: {cloud_config}")
     CLIENT_ID = secrets["clientId"]
@@ -168,6 +269,8 @@ def DB_data_loader(config: list):
     df = pd.DataFrame(list(result))
     df.to_csv(config[4], index=False)
     print(df.shape)
+    session.shutdown()
+    cluster.shutdown()
     return (auth_provider.username, auth_provider.password)
 
 
@@ -472,7 +575,7 @@ def parameter_tuning(model_class,
         tuner_report['HyperOpt'] = {'Cost': int(
             trials.average_best_error()), 'params': best_params}
         print(f"HyperOpt: {model_name} --- {tuner_report['HyperOpt']}\n\n")
-        trial_number = 0
+        # trial_number = 0
 
 # Best_COST & Best_Fittable_Params
     min_cost_value = min(
@@ -511,7 +614,6 @@ def parameter_tuning_2(models: dict, client: MlflowClient,
     """
     Parameter Tuning for batch-wise data.
     cross_validate() is used to handle the batch-wise data.
-    The last two batches are meant for validation datasets.
 
     Optuna is used to tune and select the optimal
     hyperparameters of a given model.
@@ -531,10 +633,13 @@ def parameter_tuning_2(models: dict, client: MlflowClient,
 
     The batches(or child runs) will continue iterating normally till first
     five batches, and then from the sixth batch onwards and for every even
-    batch number, the median accuracy of previous batches will be checked with
+    batch number, the 25th quantile of the accuracies of the previous batches will be checked with
     the current batches' accuracy. If the current batch's accuracy is lower
-    than the median accuracy of previous batches, that trial(consisting of the
+    than the 25th quantile accuracy of previous batches, that trial(consisting of the
     parent run and all its child runs) will be pruned.
+
+    25th quantile is set as the threshold to allow some liniency otherwise the pruning check will be too strict and
+    as a result most trials will be pruned.
 
     Those iterations that continue till the very last batch will be logged in
     MLFlow as child runs.
@@ -545,7 +650,7 @@ def parameter_tuning_2(models: dict, client: MlflowClient,
     created and logged if they iterate till the last batch of data.
 
     After the 3rd trial, all the parent runs in that model's experiment are
-    compared and the best parent is chosen as the challenger.
+    compared and the best parent is chosen as the Best_HP_Tuned_Model.
     """
     from pprint import pprint  # type: ignore
 

@@ -14,6 +14,7 @@ folders = [
     'artifacts',
     os.path.join('artifacts', 'data'),
     os.path.join('artifacts/data', 'raw'),
+    os.path.join('artifacts/data', 'temp'),
     os.path.join('artifacts/data', 'processed'),
     os.path.join('artifacts/data/processed', 'stage_1_processing'),
     os.path.join('artifacts/data/processed', 'stage_2_processing'),

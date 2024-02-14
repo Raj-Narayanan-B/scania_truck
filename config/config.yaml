@@ -1,47 +1,47 @@
 artifacts_root: "artifacts"
 
-data_ingestion_config:
+astra_dB_data_config:
   train_data1:
     secure_connect_bundle: "Secrets/Bundles/secure-connect-scania-truck-failure-1.zip"
     token: "Secrets/Tokens/scania_truck_failure_1-token.json"
     key_space_train_data_1: scania_truck_train_1
     table_train_data_1: train_data1
-    path: artifacts/data/raw/train_data_1.csv
+    # path: artifacts/data/raw/train_data_1.csv
 
   train_data2:
     secure_connect_bundle: Secrets/Bundles/secure-connect-scania-truck-failure-train-2.zip
     token: Secrets/Tokens/scania_truck_failure_train_2-token.json
     key_space_train_data_2: scania_truck_train_2
     table_train_data_2: train_data2
-    path: artifacts/data/raw/train_data_2.csv
+    # path: artifacts/data/raw/train_data_2.csv
 
   train_data3:
     secure_connect_bundle: Secrets/Bundles/secure-connect-scania-truck-failure-train-3.zip
     token: Secrets/Tokens/scania_truck_failure_train_3-token.json
     key_space_train_data_3: scania_truck_failure_train3
     table_train_data_3: train_data3
-    path: artifacts/data/raw/train_data_3.csv
+    # path: artifacts/data/raw/train_data_3.csv
 
   test_data1:
     secure_connect_bundle: Secrets/Bundles/Test Data Bundles/secure-connect-scania-truck-failure-test1.zip
     token: Secrets/Tokens/Test Data Tokens/scania_truck_failure_test1-token.json
     key_space_test_data_1: scania_truck_test_1
     table_test_data_1: test_data1
-    path: artifacts/data/raw/test_data_1.csv
+    # path: artifacts/data/raw/test_data_1.csv
 
   test_data2:
     secure_connect_bundle: Secrets/Bundles/Test Data Bundles/secure-connect-scania-truck-failure-test2.zip
     token: Secrets/Tokens/Test Data Tokens/scania_truck_failure_test2-token.json
     key_space_test_data_2: scania_truck_test_2
     table_test_data_2: test_data2
-    path: artifacts/data/raw/test_data_2.csv
+    # path: artifacts/data/raw/test_data_2.csv
 
   test_data3:
     secure_connect_bundle: Secrets/Bundles/Test Data Bundles/secure-connect-scania-truck-failure-test3.zip
     token: Secrets/Tokens/Test Data Tokens/scania_truck_failure_test3-token.json
     key_space_test_data_3: scania_truck_test_3
     table_test_data_3: test_data3
-    path: artifacts/data/raw/test_data_3.csv
+    # path: artifacts/data/raw/test_data_3.csv
   root_dir: artifacts/data/raw
 
 data_path_config:
@@ -53,6 +53,15 @@ data_path_config:
   test_data3: artifacts/data/raw/test_data_3.csv
   final_test_data: artifacts/data/final_testing_data_and_predicted_data/transformed_test_df.csv
   predicted_data: artifacts/data/final_testing_data_and_predicted_data/predictions.csv
+  temp_train_data: artifacts/data/temp/training_data.csv
+  temp_test_data: artifacts/data/temp/testing_data.csv
+  temp_train_data1: artifacts/data/temp/train_data_1.csv
+  temp_train_data2: artifacts/data/temp/train_data_2.csv
+  temp_train_data3: artifacts/data/temp/train_data_3.csv
+  temp_test_data1: artifacts/data/temp/test_data_1.csv
+  temp_test_data2: artifacts/data/temp/test_data_2.csv
+  temp_test_data3: artifacts/data/temp/test_data_3.csv
+  temp_root_dir: artifacts/data/temp
 
 data_stage_1_processing_config:
   root_dir: "artifacts/data/processed/stage_1_processing"

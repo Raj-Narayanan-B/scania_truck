@@ -23,8 +23,8 @@ nbformat
 tox
 ensure
 docker
+apache-airflow
 optuna
-hyperopt
 tqdm
 xgboost
 lightgbm

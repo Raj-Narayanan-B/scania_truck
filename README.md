@@ -85,7 +85,13 @@ export MLFLOW_TRACKING_URI=https://dagshub.com/Raj-Narayanan-B/scania_truck.mlfl
 export MLFLOW_TRACKING_USERNAME=Raj-Narayanan-B \
 export MLFLOW_TRACKING_PASSWORD=8af4cc66be8aec751397fd525e47ae395fa67442
 
-
+ENV:
+- mlflow
+- dvc
+- astradb
+- airflow
+- aws secrets
+- azure secrets
 
 TO-DO:
 Feb8,2024:
@@ -112,6 +118,7 @@ Feb 9, 2024
 
 Feb 13, 2024
     - clean up the templates(compulsarily) and static files(compulsarily) and app.pyy file(if necessary)
+    - Setup data upload into Astra DB
     - Configure the AirFlow Server using docker
     - clean the training_pipeline.py file (put everything inside a single function as before)
     - check if the env variables are set in the docker file

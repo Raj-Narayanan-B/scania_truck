@@ -1,5 +1,5 @@
 from src.constants import CONFIG_PATH, PARAMS_PATH, SCHEMA_PATH
-from src.entity.entity_config import (DataIngestionConf,
+from src.entity.entity_config import (AstraDBDataConf,
                                       DataPathConf,
                                       Stage1ProcessingConf,
                                       Stage2ProcessingConf,
@@ -19,44 +19,44 @@ class ConfigurationManager:
         self.schema = SCHEMA_PATH
         self.schema_path = load_yaml(SCHEMA_PATH)
 
-    def get_data_ingestion_config(self) -> DataIngestionConf:
-        config = self.config_path.data_ingestion_config
-        data_ingestion = DataIngestionConf(
-            train_data_1_secure_connect_bundle=config.train_data1,
+    def get_astra_dB_data_config(self) -> AstraDBDataConf:
+        config = self.config_path.astra_dB_data_config
+        data_ingestion = AstraDBDataConf(
+            train_data_1_secure_connect_bundle=config.train_data1.secure_connect_bundle,
             train_data_1_token=config.train_data1.token,
             train_data_1_key_space=config.train_data1.key_space_train_data_1,
             train_data_1_table=config.train_data1.table_train_data_1,
-            train_data_1_path=config.train_data1.path,
+            # train_data_1_path=config.train_data1.path,
 
-            train_data_2_secure_connect_bundle=config.train_data2,
+            train_data_2_secure_connect_bundle=config.train_data2.secure_connect_bundle,
             train_data_2_token=config.train_data2.token,
             train_data_2_key_space=config.train_data2.key_space_train_data_2,
             train_data_2_table=config.train_data2.table_train_data_2,
-            train_data_2_path=config.train_data2.path,
+            # train_data_2_path=config.train_data2.path,
 
-            train_data_3_secure_connect_bundle=config.train_data3,
+            train_data_3_secure_connect_bundle=config.train_data3.secure_connect_bundle,
             train_data_3_token=config.train_data3.token,
             train_data_3_key_space=config.train_data3.key_space_train_data_3,
             train_data_3_table=config.train_data3.table_train_data_3,
-            train_data_3_path=config.train_data3.path,
+            # train_data_3_path=config.train_data3.path,
 
-            test_data_1_secure_connect_bundle=config.test_data1,
+            test_data_1_secure_connect_bundle=config.test_data1.secure_connect_bundle,
             test_data_1_token=config.test_data1.token,
             test_data_1_key_space=config.test_data1.key_space_test_data_1,
             test_data_1_table=config.test_data1.table_test_data_1,
-            test_data_1_path=config.test_data1.path,
+            # test_data_1_path=config.test_data1.path,
 
-            test_data_2_secure_connect_bundle=config.test_data2,
+            test_data_2_secure_connect_bundle=config.test_data2.secure_connect_bundle,
             test_data_2_token=config.test_data2.token,
             test_data_2_key_space=config.test_data2.key_space_test_data_2,
             test_data_2_table=config.test_data2.table_test_data_2,
-            test_data_2_path=config.test_data2.path,
+            # test_data_2_path=config.test_data2.path,
 
-            test_data_3_secure_connect_bundle=config.test_data3,
+            test_data_3_secure_connect_bundle=config.test_data3.secure_connect_bundle,
             test_data_3_token=config.test_data3.token,
             test_data_3_key_space=config.test_data3.key_space_test_data_3,
             test_data_3_table=config.test_data3.table_test_data_3,
-            test_data_3_path=config.test_data3.path,
+            # test_data_3_path=config.test_data3.path,
 
             root_directory=config.root_dir
         )
@@ -71,8 +71,21 @@ class ConfigurationManager:
             test_data1=config.test_data1,
             test_data2=config.test_data2,
             test_data3=config.test_data3,
+
             final_test_data=config.final_test_data,
-            prediction_data=config.predicted_data
+            prediction_data=config.predicted_data,
+
+            temp_train_data=config.temp_train_data,
+            temp_test_data=config.temp_test_data,
+
+            temp_train_data1=config.temp_train_data1,
+            temp_train_data2=config.temp_train_data2,
+            temp_train_data3=config.temp_train_data3,
+            temp_test_data1=config.temp_test_data1,
+            temp_test_data2=config.temp_test_data2,
+            temp_test_data3=config.temp_test_data3,
+
+            temp_dir_root=config.temp_root_dir
         )
         return (data_path_config)
 
