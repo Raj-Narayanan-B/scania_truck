@@ -228,6 +228,10 @@ def DB_data_uploader(config: list):
         print(f"Return code: {result.returncode}")
         print(f"Standard output: {result.stdout}")
         print(f"Standard error: {result.stderr}\n\n")
+
+        session.shutdown()
+        cluster.shutdown()
+
     logger.info(f"The entire {file} is uploaded successfully in batches.")
 
     # Removal of log files created by DSbulk
