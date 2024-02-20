@@ -1,0 +1,16 @@
+files_for_model_training:
+    testing_set: remote_aps_failure_testing_set.csv
+    training_set: remote_aps_failure_training_set.csv
+files_predicted: {}
+files_to_predict:
+    S3_file_1: aps_failure_test_set_testing.csv
+    S3_file_10: aps_failure_test_set_testing8.csv
+    S3_file_11: aps_failure_test_set_testing9.csv
+    S3_file_2: aps_failure_test_set_testing1.csv
+    S3_file_3: aps_failure_test_set_testing10.csv
+    S3_file_4: aps_failure_test_set_testing2.csv
+    S3_file_5: aps_failure_test_set_testing3.csv
+    S3_file_6: aps_failure_test_set_testing4.csv
+    S3_file_7: aps_failure_test_set_testing5.csv
+    S3_file_8: aps_failure_test_set_testing6.csv
+    S3_file_9: aps_failure_test_set_testing7.csv

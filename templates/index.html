@@ -54,7 +54,7 @@
 
                 <h1>Welcome to Scania Truck Failures Prediction</h1>
                 <h2>This app predicts failures for scania trucks using <span class="typed"
-                        data-typed-items="online data, bulk data"></span></h2>
+                        data-typed-items="online data, bulk data, data from s3 bucket"></span></h2>
                 <div class="actions">
                     <i class="bi bi-list toggle-sidebar-btn"></i>
                     <!-- <a href="A_series.html" class="btn-online-prediction">Online Prediction</a>
@@ -114,14 +114,21 @@
             </li><!-- End Components Nav -->
 
             <li class="nav-item">
-                <a class="nav-link " href="{{ url_for('predict')}}"">
+                <a class="nav-link " href="{{ url_for('predict')}}">
                     <i class=" bi bi-grid"></i>
                     <span>Bulk / Batch Prediction</span>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link collapsed" href="users-profile.html">
+                <a class="nav-link " href="{{ url_for('s3_bucket')}}">
+                    <i class=" bi bi-grid"></i>
+                    <span>Data from S3 Bucket Prediction</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{{url_for('airflow')}}">
                     <i class="bi bi-person"></i>
                     <span>Apache Air Flow Server</span>
                 </a>

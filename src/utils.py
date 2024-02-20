@@ -15,6 +15,7 @@ from sklearn.metrics import (balanced_accuracy_score, f1_score,
 from sklearn.pipeline import Pipeline as sk_pipeline
 from imblearn.pipeline import Pipeline as imb_pipeline
 from sklearn.model_selection import train_test_split
+# from sklearn.feature_selection import RFE
 from imblearn.combine import SMOTETomek
 from sklearn.preprocessing import RobustScaler
 from sklearn.impute import KNNImputer
@@ -30,8 +31,10 @@ from sklearn.datasets import make_classification
 from cassandra.auth import PlainTextAuthProvider
 from cassandra.cluster import Cluster, ExecutionProfile, EXEC_PROFILE_DEFAULT
 import json
-from src.constants import PARAMS_PATH
+from src.constants import PARAMS_PATH  # , SCHEMA_PATH
 from src import logger
+from collections import Counter
+from cryptography.fernet import Fernet
 import yaml
 import joblib
 import re  # type: ignore
@@ -39,14 +42,72 @@ import os
 import glob  # type: ignore
 import shutil  # type: ignore
 import subprocess  # type: ignore
-from box import ConfigBox
+# from box import ConfigBox
 from pathlib import Path  # type: ignore
 import numpy as np
 import pandas as pd
-exp_count = 292
+exp_count = 293
 ML_Model = NewType('Machine_Learning_Model', object)
 
 w.filterwarnings('ignore')
+
+
+def crypter(encrypt_or_decrypt: str, file_name: str, data_to_encrypt: dict = None):
+    """
+        - Function to encrypt and decrypt.
+        - The keys are saved in Secrets/Keys
+        - The encrypted files are saved in Secrets/Secrets
+
+        Parameters
+        ----------
+        encrypt_or_decrypt : str
+            The type on action to perform. Accepts: 'encrypt' or 'decrypt'
+
+        file_name : str
+            The name of the file under which keys and the encrypted file will be stored
+
+        data_to_encrypt: dict
+            The dictionary of the data to be encrypted. Required for encryption only.
+    """
+    key_path = "Secrets/Keys/" + file_name + "_secrets.key"
+    file_path = "Secrets/Secrets/" + file_name + "_config.yaml"
+
+    if encrypt_or_decrypt == 'encrypt':
+        # Generate the unique for this data
+        key = Fernet.generate_key()
+        with open(key_path, 'wb') as key_file:
+            key_file.write(key)
+        cipher_encrypt = Fernet(key)
+
+        encrypted_data = {}
+        for key, value in data_to_encrypt.items():
+            encrypted_data[key] = cipher_encrypt.encrypt(value.encode()).decode()
+
+        # Save encrypted data to a configuration file
+        save_yaml(file=encrypted_data,
+                  filepath=file_path,
+                  mode='w')
+
+    elif encrypt_or_decrypt == 'decrypt':
+        # Read the key_file
+        try:
+            with open(key_path, 'rb') as key_file:
+                key = key_file.read()
+            cipher_decrypt = Fernet(key)
+
+            # Load encrypted data from the yaml file
+            loaded_data = load_yaml(filepath=file_path)
+
+            # Decrypt sensitive information
+            decrypted_data = {}
+            for key, value in loaded_data.items():
+                decrypted_data[key] = cipher_decrypt.decrypt(value.encode()).decode()
+
+            return decrypted_data
+
+        except FileNotFoundError:
+            print(f"Key file '{key_file}' not found!")
+            logger.info(f"Key file '{key_file}' not found!")
 
 
 def load_yaml(filepath: Path):
@@ -56,7 +117,7 @@ def load_yaml(filepath: Path):
             config = yaml.load(yaml_file,
                                Loader=yaml.CLoader)
             logger.info(f"{filename} yaml_file is loaded")
-            return ConfigBox(config)
+            return config
     except Exception as e:
         raise e
 
@@ -139,18 +200,183 @@ def make_synthetic_data_for_unit_testing():
     return sample_df
 
 
+def batch_counter(dict_: dict):
+    counter = 0
+    for key in dict_.keys():
+        if key.startswith('Batch'):
+            counter += 1
+    return counter
+
+
+def s3_counter(dict_: dict):
+    counter = 0
+    for key in dict_.keys():
+        if key.startswith('S3'):
+            counter += 1
+    return counter
+
+
+def get_files_list_in_s3(files_dict: dict):
+    files_from_s3_dict = {}
+    for i in range(len(files_dict)):
+        files_from_s3_dict[f"file_{i+1}"] = files_dict[i]['Key']
+    return list(files_from_s3_dict.values())
+
+
+def file_lineage_s3_files_refresher(files_in_s3: dict, old_files: dict):
+
+    files_from_s3_list = get_files_list_in_s3(files_in_s3)
+
+    old_files_for_model_training = old_files['files_for_model_training']
+    old_files_predicted = old_files['files_predicted']
+    old_files_to_predict = old_files['files_to_predict']
+
+    for key, value in old_files_for_model_training.items():
+        if value in files_from_s3_list:
+            files_from_s3_list.remove(value)
+        else:
+            old_files_for_model_training.pop(key)
+            raise ValueError(f"{value} is missing from S3")
+
+    files_from_s3_list_ = files_from_s3_list.copy()
+    key_list = []
+    for key, value in old_files_predicted.items():
+        if key.startswith("S3"):
+            if value in files_from_s3_list_:
+                files_from_s3_list.remove(value)
+            else:
+                key_list.append(key)
+    if len(key_list) > 0:
+        for key in key_list:
+            old_files_predicted.pop(key)
+
+    key_list = []
+    files_from_s3_list_ = files_from_s3_list.copy()
+    for key, value in old_files_to_predict.items():
+        if key.startswith("S3"):
+            if value in files_from_s3_list_:
+                files_from_s3_list.remove(value)
+            else:
+                key_list.append(key)
+    if len(key_list) > 0:
+        for key in key_list:
+            old_files_to_predict.pop(key)
+
+    if len(files_from_s3_list) > 0:
+        s3_count = s3_counter(old_files_to_predict)
+        for i, file in enumerate(files_from_s3_list):
+            old_files_to_predict[f'S3_file_{s3_count+(i+1)}'] = file
+
+    old_files['files_for_model_training'] = old_files_for_model_training
+    old_files['files_predicted'] = old_files_predicted
+    old_files['files_to_predict'] = old_files_to_predict
+
+    return old_files
+
+
+def file_lineage_adder(add_list: list, old_files_predicted: dict):
+    batch_count = batch_counter(old_files_predicted)
+    for i, file in enumerate(add_list, start=1):
+        if file in list(old_files_predicted.values()):
+            raise ValueError(f"Duplicate file entry: {file}")
+        else:
+            old_files_predicted[f"Batch_file_{batch_count+(i)}"] = file
+    return old_files_predicted
+
+
+def file_lineage_updater(update_list: list, old_files_predicted: dict, old_files_to_predict: dict):
+    key_list = []
+    for i in update_list:
+        for key, value in old_files_to_predict.items():
+            if i == value:
+                if key.startswith("S3"):
+                    key_list.append(key)
+                    s3_count = s3_counter(old_files_predicted)
+                    old_files_predicted[f"S3_file_{s3_count+1}"] = i
+                elif key.startswith('Batch'):
+                    key_list.append(key)
+                    batch_count = batch_counter(old_files_predicted)
+                    old_files_predicted[f"Batch_file_{batch_count+1}"] = i
+    for i in key_list:
+        old_files_to_predict.pop(i)
+
+    s3_count = s3_counter(old_files_to_predict)
+    batch_count = batch_counter(old_files_to_predict)
+    remaining_s3_files_to_predict = []
+    remaining_batch_files_to_predict = []
+    for key in old_files_to_predict.keys():
+        if key.startswith("S3"):
+            remaining_s3_files_to_predict.append(old_files_to_predict[key])
+        elif key.startswith("Batch"):
+            remaining_batch_files_to_predict.append(old_files_to_predict[key])
+    old_files_to_predict = {}
+    try:
+        for i in range(s3_count):
+            old_files_to_predict[f"S3_file_{i+1}"] = remaining_s3_files_to_predict[i]
+    except Exception:
+        pass
+    try:
+        for i in range(batch_count):
+            old_files_to_predict[f"Batch_file_{i+1}"] = remaining_batch_files_to_predict[i]
+    except Exception:
+        pass
+
+    return (old_files_predicted, old_files_to_predict)
+
+
+def file_lineage_reverse_updater(reverse_update_list: list, old_files_predicted: dict, old_files_to_predict: dict):
+    key_list = []
+    for i in reverse_update_list:
+        for key, value in old_files_predicted.items():
+            if i == value:
+                if key.startswith("S3"):
+                    key_list.append(key)
+                    s3_count = s3_counter(old_files_to_predict)
+                    old_files_to_predict[f"S3_file_{s3_count+1}"] = i
+                elif key.startswith('Batch'):
+                    key_list.append(key)
+                    batch_count = batch_counter(old_files_to_predict)
+                    old_files_to_predict[f"Batch_file_{batch_count+1}"] = i
+    for i in key_list:
+        old_files_predicted.pop(i)
+
+    s3_count = s3_counter(old_files_predicted)
+    batch_count = batch_counter(old_files_predicted)
+    remaining_s3_files = []
+    remaining_batch_files = []
+    for key in old_files_predicted.keys():
+        if key.startswith("S3"):
+            remaining_s3_files.append(old_files_predicted[key])
+        elif key.startswith("Batch"):
+            remaining_batch_files.append(old_files_predicted[key])
+    old_files_predicted = {}
+    try:
+        for i in range(s3_count):
+            old_files_predicted[f"S3_file_{i+1}"] = remaining_s3_files[i]
+    except Exception:
+        pass
+    try:
+        for i in range(batch_count):
+            old_files_predicted[f"Batch_file_{i+1}"] = remaining_batch_files[i]
+    except Exception:
+        pass
+    return (old_files_predicted, old_files_to_predict)
+
+
 def DB_data_uploader(config: list):
     main_data_path = config[0][0]
     logger.info(f"{main_data_path} is the main data path")
 
     file_path, file = os.path.split(main_data_path)
     df = pd.read_csv(main_data_path)
-    if file == 'training_data.csv':
-        range_ = 60001
-        logger.info(f"{range_} is the range")
-    else:
-        range_ = 16001
-        logger.info(f"{range_} is the range")
+    # if file == 'remote_aps_failure_training_set.csv':
+    #     range_ = 60001
+    #     logger.info(f"{range_} is the range")
+    # else:
+    #     range_ = 16001
+    #     logger.info(f"{range_} is the range")
+    range_ = len(df) + 1
+    logger.info(f"{range_} is the range")
 
     df_1 = df.iloc[:, :74]
     df_1['ident_id'] = range(1, range_)
@@ -234,6 +460,13 @@ def DB_data_uploader(config: list):
 
     logger.info(f"The entire {file} is uploaded successfully in batches.")
 
+    # Removal of temporary data files
+    for i in range(1, 4):
+        os.remove(config[i][4])
+        logger.info(f"Removed : {config[i][4]}")
+    os.remove(config[0][0])
+    logger.info(f"Removed : {config[0][0]}")
+
     # Removal of log files created by DSbulk
     directory_path = "logs"
     pattern = os.path.join(directory_path, "LOAD*")
@@ -302,37 +535,36 @@ def stage_1_processing_function(dataframes: list) -> pd.DataFrame:
     data_merger_final.rename(columns={'field_74_': 'class'}, inplace=True)
     logger.info("Renaming Target Column")
 
-    data_merger_final['class'] = data_merger_final['class'].map({'neg': 0, 'pos': 1})
-    logger.info("Mapping Target Column values")
-
-    data_merger_final.replace('na', np.nan, inplace=True)
-    logger.info("Replacing 'na' to 'np.nan' values")
-
-    test_col_list = [i for i in data_merger_final.columns if i != 'class']
-    logger.info("Creating list of column names of input features")
-
-    for i in test_col_list:
-        data_merger_final[i] = data_merger_final[i].astype('float')
-    logger.info("dtype of input features converted from 'object' to 'float'")
+    data_merger_final_ = data_validation_helper(data_merger_final)
 
     logger.info("Stage 1 processing complete - Returning processed dataframe")
-    return (data_merger_final)
+    return (data_merger_final_)
 
 
-def schema_saver(dataframe: pd.DataFrame, filepath=None):
+def schema_saver(dataframe: pd.DataFrame,  labels: list, mode: str, filepath=None):
+    if len(labels) > 2:
+        raise ValueError("The 'labels' argument should not have more than 2 values.")
     from src.config.configuration_manager import ConfigurationManager
     obj = ConfigurationManager()
     dict_cols = {}
-    dict_cols['Features'] = {}
-    dict_cols['Target'] = {}
+    flag = 0
+    try:
+        labels.remove('Target')
+        flag = 1
+    except Exception:
+        pass
+    for i in labels:
+        dict_cols[i] = {}
     for i in dataframe.columns:
         if i == 'class':
-            dict_cols['Target'][i] = str(dataframe[i].dtypes)
+            if flag == 1:
+                dict_cols['Target'] = {}
+                dict_cols['Target'][i] = str(dataframe[i].dtypes)
         else:
-            dict_cols['Features'][i] = str(dataframe[i].dtypes)
+            dict_cols[labels[0]][i] = str(dataframe[i].dtypes)
     if not filepath:
         filepath = obj.schema
-    save_yaml(file=dict_cols, filepath=filepath)
+    save_yaml(file=dict_cols, filepath=filepath, mode=mode)
 
 
 def train_test_splitter(dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -341,13 +573,26 @@ def train_test_splitter(dataframe: pd.DataFrame) -> pd.DataFrame:
 
 
 def stage_2_processing_function(dataframe: pd.DataFrame) -> pd.DataFrame:
+    """
+        - In this final processing function; The NA values are imputed using KNN Imputer.
+        - Further, the dataframe is scaled using Robust Scaler (as there are outliers)
+        - Lastly, in this function, duplicate entries/rows are also removed
+    """
     from src.config.configuration_manager import ConfigurationManager
     obj = ConfigurationManager()
     preprocessor_config = obj.get_preprocessor_config()
     schema = load_yaml(obj.schema)
     target = list(schema.Target.keys())[0]
     if not os.path.exists(preprocessor_config.preprocessor_path):
-        logger.info("Stage 2 Processing Commencing")
+        logger.info("Stage 2 Processing Commencing for train_data")
+
+        # logger.info("Commencing Data Validation")
+        # dataframe_train = data_validation(dataframe=dataframe)
+
+        logger.info("Saving schema with columns that, have less than 50% missing values and have > zero standard deviation")
+        schema_saver(dataframe=dataframe,
+                     labels=['Required_Features'],
+                     mode='a')
 
         pipeline = sk_pipeline(steps=[('Knn_imputer', KNNImputer()),
                                       ('Robust_Scaler', RobustScaler())],
@@ -374,6 +619,7 @@ def stage_2_processing_function(dataframe: pd.DataFrame) -> pd.DataFrame:
         logger.info("SmoteTomek Complete")
 
         columns_list = list(pipeline.get_feature_names_out())
+        logger.info(f"Pipeline is fitted with the columns: {columns_list}")
         X_column_names = [i for i in columns_list if i != target]
         y_column_name = target
 
@@ -386,6 +632,26 @@ def stage_2_processing_function(dataframe: pd.DataFrame) -> pd.DataFrame:
                     filepath=preprocessor_config.preprocessor_path)
         logger.info(
             f"Pipeline saved at: {preprocessor_config.preprocessor_path}")
+
+        # logger.info("Loading histogram features")
+        # hist_features = load_yaml(SCHEMA_PATH)['histogram_columns']
+        # hist_features = (hist_features.keys())
+
+        # logger.info("Commencing Feature Selection of histogram features")
+        # hist_feature_selector = RFE(estimator = RandomForestClassifier(n_estimators=108,
+        #                                                                n_jobs = -1,
+        #                                                                random_state = 8),
+        #                             verbose = 3)
+        # hist_feature_selector.fit(transformed_df[hist_features],
+        #                           transformed_df['class'])
+        # hist_feature_selector.get_feature_names_out()
+
+        # Checking for any duplicates
+        if any(transformed_df.duplicated()):
+            logger.info("Dropping duplicate rows/entries")
+            shape = transformed_df[transformed_df.duplicated()].shape[0]
+            transformed_df.drop_duplicates(inplace=True)
+            logger.info(f"Number of duplicate rows/entries dropped {shape}")
 
         logger.info("Stage 2 Processing Complete")
 
@@ -420,9 +686,115 @@ def stage_2_processing_function(dataframe: pd.DataFrame) -> pd.DataFrame:
         transformed_df = pd.DataFrame(X_smote, columns=X_column_names)
         transformed_df[y_column_name] = y_smote
 
+        # Checking for any duplicates
+        if any(transformed_df.duplicated()):
+            logger.info("Dropping duplicate rows/entries")
+            shape = transformed_df[transformed_df.duplicated()].shape[0]
+            transformed_df.drop_duplicates(inplace=True)
+            logger.info(f"Number of duplicate rows/entries dropped {shape}")
+
         logger.info("Stage 2 Processing Complete")
 
         return (transformed_df)
+
+
+def data_validation_helper(data_frame: pd.DataFrame):
+    """
+        This validation function:
+            * Checks and:
+                - Maps 'neg' to 0 and 'pos' to 1 in the given pandas dataframe
+                - Converts 'na' to np.nan
+                - Coverts the datatype of all the columns except target column to "float"
+    """
+    try:
+        data_frame['class'] = data_frame['class'].map({'neg': 0, 'pos': 1})
+        logger.info("Mapping Target Column values")
+    except Exception:
+        pass
+
+    try:
+        data_frame.replace('na', np.nan, inplace=True)
+        logger.info("Replacing 'na' to 'np.nan' values")
+    except Exception:
+        pass
+
+    test_col_list = [i for i in data_frame.columns if i != 'class']
+    if len(test_col_list) != 170:
+        raise ValueError("The length of dataframe's input features is not equal to 170")
+    else:
+        logger.info("Creating list of column names of input features")
+
+    try:
+        for i in test_col_list:
+            data_frame[i] = data_frame[i].astype('float')
+        logger.info("dtype of input features converted from 'object' to 'float'")
+    except Exception as e:
+        raise e
+
+    return (data_frame)
+
+
+def data_validation(dataframe: pd.DataFrame, cols_to_remove: list = None, columns_with_0_std_dev: list = None):
+    """
+        This validation function:
+            * Checks and removes:
+                - Columns that have more than 50% missing values (removed columns are saved in SCHEMA)
+                - Columns that have 0 standard deviation (removed columns are saved in SCHEMA)
+            * Checks and saves the histogram features present in the dataframe (histogram features are saved in SCHEMA)
+    """
+    # Checking for columns that have more than 50% missing values
+    if cols_to_remove is None:
+        logger.info("Fetching columns that have more than 50% missing values")
+        missing_values_series = pd.Series(dataframe.isna().sum().sort_values(ascending=False)*100/dataframe.shape[0])
+        missing_values_series = missing_values_series[missing_values_series >= 50]
+        cols_to_remove = missing_values_series.index
+
+        logger.info("Saving Schema with dropped columns that had more than 50% missing values under the name: 'columns_with_more_than_50%_missing_values")
+        schema_saver(dataframe=dataframe[cols_to_remove],
+                     labels=['columns_with_more_than_50%_missing_values'],
+                     mode='a')
+
+        logger.info("Dropping columns that have more than 50% missing values")
+        dataframe.drop(columns=cols_to_remove, inplace=True)
+
+        logger.info(f"Dropped columns and their respective values:\n{missing_values_series}")
+    else:
+        dataframe = data_validation_helper(dataframe)
+        logger.info("Dropping same columns in test_data, that had more than 50% missing values in train_data")
+        dataframe.drop(columns=cols_to_remove, inplace=True)
+        logger.info(f"Dropped columns:\n{cols_to_remove}")
+
+    # Checking for columns with zero standard deviation and dropping those columns
+    if columns_with_0_std_dev is None:
+        columns_with_0_std_dev = list(dataframe.std()[dataframe.std() == 0].index)
+
+        logger.info("Saving Schema with columns that have zero standard deviation under: 'columns_with_zero_standard_deviation'")
+        schema_saver(dataframe=dataframe[columns_with_0_std_dev],
+                     labels=['columns_with_zero_standard_deviation'],
+                     mode='a')
+
+        dataframe.drop(columns=columns_with_0_std_dev, inplace=True)
+        logger.info("Dropping columns with zero standard deviation")
+        logger.info(f"Dropped columns are:\n{columns_with_0_std_dev}")
+
+        # Checking for histogram features
+        prefix = []
+        for name in dataframe.columns:
+            prefix.append(name.split('_')[0])
+        counter_dict = Counter(prefix)
+        hist_dict_ = {key: value for key, value in counter_dict.items() if value > 1}
+        hist_features = [column for column in dataframe.columns if column.split('_')[0] in list(hist_dict_.keys())]
+
+        logger.info("Saving Schema with histogram-features")
+        schema_saver(dataframe=dataframe[hist_features],
+                     labels=['histogram_columns'],
+                     mode='a')
+    else:
+        logger.info("Dropping same columns in test_data, that had zero standard deviation in train_data")
+        dataframe.drop(columns=columns_with_0_std_dev, inplace=True)
+        logger.info(f"Dropped columns:\n{columns_with_0_std_dev}")
+
+    return (dataframe)
 
 
 def eval_metrics(y_true, y_pred):
@@ -614,7 +986,7 @@ def parameter_tuning(model_class,
 
 
 def parameter_tuning_2(models: dict, client: MlflowClient,
-                       dataframe: pd.DataFrame):
+                       dataframe: pd.DataFrame, optuna_trials_study_df_path: Path):
     """
     Parameter Tuning for batch-wise data.
     cross_validate() is used to handle the batch-wise data.
@@ -791,7 +1163,7 @@ def parameter_tuning_2(models: dict, client: MlflowClient,
             temp_df = find_params.trials_dataframe()
             temp_df['Model_name'] = key
             model_trial_study_df = pd.concat([model_trial_study_df, temp_df])
-        model_trial_study_df.to_csv('artifacts/metrics/model_trial_study_df.csv', index=False)
+        model_trial_study_df.to_csv(optuna_trials_study_df_path, index=False)
 
         mlflow_df = mlflow.search_runs(experiment_ids=[f'{exp_id}'])
         if mlflow_df.empty:
@@ -918,7 +1290,8 @@ def best_model_finder(models: dict = None, client: MlflowClient = None, model_na
 def stacking_clf_trainer(best_estimators: list[tuple], final_estimator,
                          x_train: pd.DataFrame, y_train: pd.DataFrame,
                          x_test: pd.DataFrame, y_test: pd.DataFrame,
-                         client: MlflowClient):
+                         client: MlflowClient,
+                         model_path: str):
     stacking_clf = StackingClassifier(estimators=best_estimators,
                                       final_estimator=final_estimator,
                                       cv=3,
@@ -944,8 +1317,8 @@ def stacking_clf_trainer(best_estimators: list[tuple], final_estimator,
                           run_name=f"Challenger {stacking_clf.__class__.__name__}",
                           tags={'model': 'Stacked_Classifier',
                                 "run_type": "parent",
-                                "model_type": "Challenger"}) as parent_run:
-        parent_run_id = parent_run.info.run_id
+                                "model_type": "Challenger"}):
+        # parent_run_id = parent_run.info.run_id
         mlflow_logger(model=stacking_clf,
                       client=client,
                       model_name='Stacked_Classifier',
@@ -961,9 +1334,8 @@ def stacking_clf_trainer(best_estimators: list[tuple], final_estimator,
                       registered_model_name="Challenger Stacked_Classifier",
                       artifact_path=None,
                       tags=tags)
-    save_binary(file=stacking_clf, filepath=r'artifacts\model\hp_tuned_model\stacking_classifier.joblib')
-    return (metrics_stacking_clf, exp_id_stack_clf,
-            y_pred_stacking_clf, parent_run_id)
+    save_binary(file=stacking_clf, filepath=model_path)
+    return (metrics_stacking_clf, exp_id_stack_clf, y_pred_stacking_clf)
 
     # models['Stacked_Classifier']=StackingClassifier(**report['Stacked_Classifier']['Fittable_Params'])
 
@@ -971,7 +1343,8 @@ def stacking_clf_trainer(best_estimators: list[tuple], final_estimator,
 def voting_clf_trainer(best_estimators: list[tuple],
                        x_train: pd.DataFrame, y_train: pd.DataFrame,
                        x_test: pd.DataFrame, y_test: pd.DataFrame,
-                       client=MlflowClient):
+                       client: MlflowClient,
+                       model_path: Path):
     voting_clf = VotingClassifier(estimators=best_estimators,
                                   n_jobs=-1,
                                   verbose=True)
@@ -991,8 +1364,8 @@ def voting_clf_trainer(best_estimators: list[tuple],
                           run_name=f"Challenger {voting_clf.__class__.__name__}",
                           tags={'model': 'Voting_Classifier',
                                 "run_type": "parent",
-                                "model_type": "Challenger"}) as parent_run:
-        parent_run_id = parent_run.info.run_id
+                                "model_type": "Challenger"}):
+        # parent_run_id = parent_run.info.run_id
         mlflow_logger(model=voting_clf,
                       client=client,
                       model_name='Voting_Classifier',
@@ -1008,16 +1381,15 @@ def voting_clf_trainer(best_estimators: list[tuple],
                       registered_model_name="Challenger Voting_Classifier",
                       artifact_path=None,
                       tags=tags)
-    save_binary(file=voting_clf, filepath=r'artifacts\model\hp_tuned_model\voting_classifier.joblib')
-    return (metrics_voting_clf, exp_id_voting_clf,
-            y_pred_voting_clf, parent_run_id)
+    save_binary(file=voting_clf, filepath=model_path)
+    return (metrics_voting_clf, exp_id_voting_clf, y_pred_voting_clf)
 
 
 def model_trainer(mlflow_experiment_id, client: MlflowClient,
                   x_train: pd.DataFrame, y_train: pd.DataFrame,
                   x_test: pd.DataFrame, y_test: pd.DataFrame,
+                  model_path: Path,
                   model=None, model_dict: dict = None,
-                  #   models: dict=None,
                   params: dict = None):
     y_pred_final_estimator = model_trainer_2(x_train=x_train, y_train=y_train,
                                              x_test=x_test, y_test=y_test,
@@ -1056,8 +1428,8 @@ def model_trainer(mlflow_experiment_id, client: MlflowClient,
 
         mlflow.log_metrics(eval_metrics(
             y_true=y_test, y_pred=y_pred_final_estimator))
-    save_binary(file=model, filepath=r'artifacts\model\hp_tuned_model\final_estimator.joblib')
-    return metrics_final_estimator, y_pred_final_estimator, run_id
+    save_binary(file=model, filepath=model_path)
+    return metrics_final_estimator, y_pred_final_estimator
 
 
 def model_trainer_2(model, x_train: pd.DataFrame, y_train: pd.DataFrame,

@@ -7,12 +7,14 @@ mysqlclient
 pyyaml
 joblib
 python-box
-flask
+Flask-Session==0.5.0
+# flask
 mlflow
 dagshub
 dvc
 dvc[gdrive]
 dvc[s3]
+GitPython
 pytest
 pytest-mock
 deprecation
@@ -28,7 +30,6 @@ optuna
 tqdm
 xgboost
 lightgbm
-# catboost
 imbalanced-learn
 cassandra-driver
 geomet

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <title>S3_bucket Prediction: Scania Truck Prediction</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
+
+    <!-- Favicons -->
+    <link href="../static/img/favicon.png" rel="icon">
+    <link href="../static/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i|Raleway:300,400,500,700,800"
+        rel="stylesheet">
+
+    <!-- Vendor CSS Files -->
+    <link href="../static/vendor/aos/aos.css" rel="stylesheet">
+    <link href="../static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="../static/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+    <link href="../static/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+    <!-- Template Main CSS File -->
+    <link href="../static/css/style.css" rel="stylesheet">
+
+</head>
+
+<body>
+    <!-- ======= Contact Section ======= -->
+    <section id="contact">
+        <div class="container" data-aos="fade-up">
+            <div class="row">
+                <div class="col-md-12">
+                    <h3 class="section-title">S3 Bucket Prediction</h3>
+                    <div class="section-title-divider"></div>
+                    <p class="section-description">Please select the files available in the S3 bucket you'd like to
+                        predict</p>
+                    <p class="section-description"> Make sure that there are 170 input columns. If there is any
+                        column missing, the
+                        prediction will
+                        halt.
+                    </p>
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-5 col-md-8">
+                    <div class="form">
+                        <form id="bulkPredictionForm" action="{{url_for('s3_bucket')}}" method="post" role="form"
+                            class="php-email-form" enctype="multipart/form-data">
+
+                            <p>Number of files in the S3 bucket: {{ s3_file_list|length }}</p>
+
+                            <!-- Display list of available files -->
+                            <div class="form-group mt-3">
+                                <label for="inputNumber" class="col-sm-2 col-form-label">Select File</label>
+                                <div class="col-sm-10">
+                                    <select class="form-select" name="selected_file" required>
+                                        {% for file in s3_file_list %}
+                                        <option value="{{ file }}">{{ file }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- File upload input -->
+                            <!-- <div class="form-group mt-3">
+                                <div class="row mb-3">
+                                    <label for="inputNumber" class="col-sm-2 col-form-label">File Upload</label>
+                                    <div class="col-sm-10">
+                                        <input class="form-control" type="file" id="formFile" name="file_1"
+                                            accept=".csv" required>
+                                    </div>
+                                </div>
+                            </div> -->
+
+                            <div class="my-3">
+                                <div class="loading">Loading</div>
+                                <div class="error-message"></div>
+                                <div class="sent-message">File Submitted!</div>
+                            </div>
+                            <div class="text-center"><button type="submit">Submit</button></div>
+
+                        </form>
+                        <p></p>
+                        <div class="text-center"><a href="{{url_for('home_page')}}"><button
+                                    type="button">Home</button></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section><!-- End Contact Section -->
+
+
+    <div id="preloader"></div>
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
+            class="bi bi-arrow-up-short"></i></a>
+
+    <!-- Vendor JS Files -->
+    <script src="../static/vendor/aos/aos.js"></script>
+    <script src="../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../static/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="../static/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+    <script src="../static/vendor/swiper/swiper-bundle.min.js"></script>
+    <script src="../static/vendor/typed.js/typed.umd.js"></script>
+
+    <!-- Template Main JS File -->
+    <script src="../static/js/main.js"></script>
+
+</body>
+
+</html>

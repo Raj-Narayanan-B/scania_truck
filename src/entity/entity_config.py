@@ -62,6 +62,7 @@ class DataPathConf:
     temp_test_data2: Path
     temp_test_data3: Path
     temp_dir_root: Path
+    data_from_s3: Path
 
 
 @dataclass(frozen=True)
@@ -69,6 +70,12 @@ class Stage1ProcessingConf:
     root_dir: Path
     train_data_path: Path
     test_data_path: Path
+
+
+@dataclass(frozen=True)
+class DataValidationConf:
+    root_dir: Path
+    validated_data: Path
 
 
 @dataclass(frozen=True)
@@ -100,6 +107,7 @@ class ModelMetricsConf:
     root_dir: Path
     metrics: Path
     best_metric: Path
+    model_trial_study_df: Path
 
 
 @dataclass(frozen=True)

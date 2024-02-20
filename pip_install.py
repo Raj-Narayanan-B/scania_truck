@@ -4,8 +4,9 @@
 # os.system('dvc pull')
 # print (obj.config_path)
 # print (os.getcwd())
-from src.utils import save_yaml
-import mlflow
+# from airflow.utils import db
+# from src.utils import save_yaml
+# import mlflow
 
 # from src.config.configuration_manager import ConfigurationManager
 # from src.entity.entity_config import ModelTrainerConf
@@ -45,12 +46,20 @@ import mlflow
 
 # save_yaml(file=champion_source, filepath='mlflow_model_sources.yaml')
 
-sources = {}
-for i in range(2):
-    model_name = mlflow.search_registered_models(filter_string="tags.model_type ilike 'Challenger'")[i].name
-    if model_name != 'Challenger Stacked_Classifier' and model_name != 'Challenger Voting_Classifier':
-        model_name = 'Final_Estimator'
-    else:
-        model_name = model_name.replace(" ", "_")
-    sources[model_name] = mlflow.search_registered_models(filter_string="tags.model_type ilike 'Challenger'")[i].latest_versions[0].source + "/model.pkl"
-save_yaml(file=sources, filepath=r'artifacts\model\model_sources.yaml')
+# sources = {}
+# for i in range(2):
+#     model_name = mlflow.search_registered_models(filter_string="tags.model_type ilike 'Challenger'")[i].name
+#     if model_name != 'Challenger Stacked_Classifier' and model_name != 'Challenger Voting_Classifier':
+#         model_name = 'Final_Estimator'
+#     else:
+#         model_name = model_name.replace(" ", "_")
+#     sources[model_name] = mlflow.search_registered_models(filter_string="tags.model_type ilike 'Challenger'")[i].latest_versions[0].source + "/model.pkl"
+# save_yaml(file=sources, filepath=r'artifacts\model\model_sources.yaml')
+
+
+# import dvc.api
+
+from dagshub import get_repo_bucket_client
+s3 = get_repo_bucket_client("Raj-Narayanan-B/scania_truck")
+
+s3.

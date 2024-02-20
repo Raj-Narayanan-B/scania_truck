@@ -1,7 +1,8 @@
-from src.components.stage_6_model_test_data_prediction import model_trainer_component
+from src.components.stage_7_model_test_data_prediction import model_trainer_component
+# import os
 
 
-class Training_Pipeline(model_trainer_component):
+class TrainingPipeline(model_trainer_component):
     def __init__(self):
         super().__init__()
 
@@ -10,6 +11,9 @@ class Training_Pipeline(model_trainer_component):
 
     def initial_processing_(self):
         self.initial_processing()
+
+    def data_validation__(self):
+        self.data_validation_()
 
     def data_splitting_(self):
         self.data_splitting()
@@ -24,10 +28,11 @@ class Training_Pipeline(model_trainer_component):
         self.model_training()
 
 
-training_pipeline_obj = Training_Pipeline()
-# training_pipeline_obj.data_ingestion_()
-# training_pipeline_obj.initial_processing_()
-# training_pipeline_obj.data_splitting_()
+training_pipeline_obj = TrainingPipeline()
+training_pipeline_obj.data_ingestion_()
+training_pipeline_obj.initial_processing_()
+training_pipeline_obj.data_validation__()
+training_pipeline_obj.data_splitting_()
 training_pipeline_obj.final_processing_()
-# training_pipeline_obj.models_tuning_()
-# training_pipeline_obj.model_training_()
+training_pipeline_obj.models_tuning_()
+training_pipeline_obj.model_training_()

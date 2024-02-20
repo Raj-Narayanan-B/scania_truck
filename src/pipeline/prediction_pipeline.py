@@ -1,9 +1,10 @@
 import pandas as pd
-import numpy as np
+# import numpy as np
 import mlflow
 from typing import Union  # type: ignore
 from src.utils import eval_metrics, load_binary  # , eval_metrics
 from src.config.configuration_manager import ConfigurationManager
+from src.components.stage_3_data_validation import data_validation_component
 from src import logger
 
 
@@ -16,6 +17,11 @@ class Prediction_Pipeline(ConfigurationManager):
         self.X = pd.DataFrame()
 
     def prediction_pipeline(self):
+        schema = self.schema_path
+        cols_to_remove = schema['columns_with_more_than_50%_missing_values']
+        columns_with_0_std_dev = schema['columns_with_zero_standard_deviation']
+        data_validation_obj = data_validation_component()
+
         logger.info("Loading the saved pipeline")
         preprocessor = load_binary(filepath=self.preprocessor_config.preprocessor_path)
 
@@ -27,18 +33,15 @@ class Prediction_Pipeline(ConfigurationManager):
         logger.info(f"Model loaded is {model.__class__.__name__}")
 
         X = self.X
-        # Batch Prediction
+        # Batch or S3 bucket Prediction
         if isinstance(self.data_, pd.DataFrame):
             logger.info("Commencing batch prediction")
-            X = self.data_
-            try:
-                X.replace('na', np.nan, inplace=True)
-            except Exception:
-                pass
-            if 'class' in X.columns:
+            validated_data = data_validation_obj.data_validation_(dataframe_=self.data_,
+                                                                  cols_to_remove_=cols_to_remove,
+                                                                  columns_with_0_std_dev_=columns_with_0_std_dev)
+            X = validated_data
+            if 'class' in X.columns:  # The reason for giving the following 2 lines of code under 'if' is because in real-world scenarios, 'class' may not be available.
                 y = X['class']
-                if 'neg' in list(y) or 'pos' in list(y):
-                    y = y.map({"neg": 0, "pos": 1})
                 X.drop(columns=['class'], inplace=True)
 
         # Online Prediction
@@ -49,8 +52,10 @@ class Prediction_Pipeline(ConfigurationManager):
                     self.data_[key] = eval(value)
                 except Exception:
                     pass
-            X = pd.DataFrame(self.data_, index=[0])
-            X.replace('na', np.nan, inplace=True)
+            X_ = pd.DataFrame(self.data_, index=[0])
+            X = data_validation_obj.data_validation_(dataframe_=X_,
+                                                     cols_to_remove_=cols_to_remove,
+                                                     columns_with_0_std_dev_=columns_with_0_std_dev)
 
         logger.info("Commencing data transformation")
         X_transformed = preprocessor.transform(X)

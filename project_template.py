@@ -16,8 +16,9 @@ folders = [
     os.path.join('artifacts/data', 'raw'),
     os.path.join('artifacts/data', 'temp'),
     os.path.join('artifacts/data', 'processed'),
-    os.path.join('artifacts/data/processed', 'stage_1_processing'),
-    os.path.join('artifacts/data/processed', 'stage_2_processing'),
+    os.path.join('artifacts/data/processed', 'stage_1_initial_processing'),
+    os.path.join('artifacts/data/processed', 'stage_2_validation'),
+    os.path.join('artifacts/data/processed', 'stage_3_final_processing'),
     os.path.join('artifacts/data', 'train_test'),
     os.path.join('artifacts/data', 'final_testing_data_and_predicted_data'),
 
@@ -26,6 +27,12 @@ folders = [
 
     os.path.join('artifacts', 'metrics'),
     os.path.join('artifacts', 'preprocessor'),
+
+    'Secrets',
+    os.path.join('Secrets', 'Bundles'),
+    os.path.join('Secrets', 'Keys'),
+    os.path.join('Secrets', 'Tokens'),
+    os.path.join('Secrets', 'Secrets'),
 
     'templates',
     'static',

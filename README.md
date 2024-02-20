@@ -120,7 +120,7 @@ Feb 13, 2024
     - clean up the templates(compulsarily) and static files(compulsarily) and app.pyy file(if necessary)
     - Setup data upload into Astra DB
     - Configure the AirFlow Server using docker
-    - clean the training_pipeline.py file (put everything inside a single function as before)
+    - clean the training_pipeline.py file (put everything inside a single function as before) #NOT NEEDED
     - check if the env variables are set in the docker file
 
 
@@ -128,3 +128,35 @@ Feb 14, 2024
     - Create the github/workflows/main.yaml
     - make sure that dvc is tracking all the artifact files (all the csv files created and downloaded, joblib files(model/preprocessor), params, config, schema, AstraDB secrets files)
     - test the entire app
+
+
+CREATE DATABASE airflow_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'raj' IDENTIFIED BY 'admin';
+GRANT ALL PRIVILEGES ON airflow_db.* TO 'raj';
+
+Docker Airflow Container Run Command:
+docker run -p 8080:8080 -v F:/iNeuron/Projects/scania_failures_2/airflow/dags:/app/airflow/dags scania_truck:latest
+
+
+Data_Validation
+in 0_trial.ipynb
+- Duplicates check 
+- Check for columns with 0 std_dev()
+- Drop columns that have more than 50% of missing values
+- check for histogram features
+- check for PCA # not needed
+- Create the final schema and ensure that the user inputting the new values have the columns present in final schema
+
+*** Change the module: stage4_final_preprocessing to data validation or 
+    create a new function inside that module named data_validation that includes all 
+    steps mentioned above.
+
+- Change the entity config and it's dataclass names to "artifact"
+- Make changes in training pipeline (include data validation)
+- Make changes in prediction pipeline (include data validation)
+
+
+- add files_tracker at the end of prediction pipeline
+- add s3 bucket option in index.html
+- if any file is being predicted using the S3 option in webpage, a temp folder should be created and after the prediction, it should be removed.
+- if any file is manually selected by the user, it should be added in the files_tracker

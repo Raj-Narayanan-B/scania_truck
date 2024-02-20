@@ -51,6 +51,8 @@ class data_ingestion_component(ConfigurationManager):
         for i in test_data_config:
             DB_data_downloader(i)
 
+        self.git_dvc_track([self.data_config.train_data1, self.data_config.train_data2, self.data_config.train_data3,
+                            self.data_config.test_data1, self.data_config.test_data2, self.data_config.test_data3])
 
 # config_obj = ConfigurationManager()
 # config_obj_ = config_obj.get_data_ingestion_config()

@@ -1,3 +1,5 @@
+project_root_dir: "scania_failures_2"
+
 artifacts_root: "artifacts"
 
 astra_dB_data_config:
@@ -6,42 +8,36 @@ astra_dB_data_config:
     token: "Secrets/Tokens/scania_truck_failure_1-token.json"
     key_space_train_data_1: scania_truck_train_1
     table_train_data_1: train_data1
-    # path: artifacts/data/raw/train_data_1.csv
 
   train_data2:
     secure_connect_bundle: Secrets/Bundles/secure-connect-scania-truck-failure-train-2.zip
     token: Secrets/Tokens/scania_truck_failure_train_2-token.json
     key_space_train_data_2: scania_truck_train_2
     table_train_data_2: train_data2
-    # path: artifacts/data/raw/train_data_2.csv
 
   train_data3:
     secure_connect_bundle: Secrets/Bundles/secure-connect-scania-truck-failure-train-3.zip
     token: Secrets/Tokens/scania_truck_failure_train_3-token.json
     key_space_train_data_3: scania_truck_failure_train3
     table_train_data_3: train_data3
-    # path: artifacts/data/raw/train_data_3.csv
 
   test_data1:
     secure_connect_bundle: Secrets/Bundles/Test Data Bundles/secure-connect-scania-truck-failure-test1.zip
     token: Secrets/Tokens/Test Data Tokens/scania_truck_failure_test1-token.json
     key_space_test_data_1: scania_truck_test_1
     table_test_data_1: test_data1
-    # path: artifacts/data/raw/test_data_1.csv
 
   test_data2:
     secure_connect_bundle: Secrets/Bundles/Test Data Bundles/secure-connect-scania-truck-failure-test2.zip
     token: Secrets/Tokens/Test Data Tokens/scania_truck_failure_test2-token.json
     key_space_test_data_2: scania_truck_test_2
     table_test_data_2: test_data2
-    # path: artifacts/data/raw/test_data_2.csv
 
   test_data3:
     secure_connect_bundle: Secrets/Bundles/Test Data Bundles/secure-connect-scania-truck-failure-test3.zip
     token: Secrets/Tokens/Test Data Tokens/scania_truck_failure_test3-token.json
     key_space_test_data_3: scania_truck_test_3
     table_test_data_3: test_data3
-    # path: artifacts/data/raw/test_data_3.csv
   root_dir: artifacts/data/raw
 
 data_path_config:
@@ -53,8 +49,8 @@ data_path_config:
   test_data3: artifacts/data/raw/test_data_3.csv
   final_test_data: artifacts/data/final_testing_data_and_predicted_data/transformed_test_df.csv
   predicted_data: artifacts/data/final_testing_data_and_predicted_data/predictions.csv
-  temp_train_data: artifacts/data/temp/training_data.csv
-  temp_test_data: artifacts/data/temp/testing_data.csv
+  temp_train_data: artifacts/data/temp/remote_aps_failure_training_set.csv
+  temp_test_data: artifacts/data/temp/remote_aps_failure_testing_set.csv
   temp_train_data1: artifacts/data/temp/train_data_1.csv
   temp_train_data2: artifacts/data/temp/train_data_2.csv
   temp_train_data3: artifacts/data/temp/train_data_3.csv
@@ -62,16 +58,21 @@ data_path_config:
   temp_test_data2: artifacts/data/temp/test_data_2.csv
   temp_test_data3: artifacts/data/temp/test_data_3.csv
   temp_root_dir: artifacts/data/temp
+  data_loaded_from_s3_so_far: artifacts/data/file_lineage.yaml
 
 data_stage_1_processing_config:
-  root_dir: "artifacts/data/processed/stage_1_processing"
-  train_data_path: "artifacts/data/processed/stage_1_processing/preprocessed_train_data.csv"
-  test_data_path: "artifacts/data/processed/stage_1_processing/preprocessed_test_data.csv"
+  root_dir: "artifacts/data/processed/stage_1_initial_processing"
+  train_data_path: "artifacts/data/processed/stage_1_initial_processing/preprocessed_train_data.csv"
+  test_data_path: "artifacts/data/processed/stage_1_initial_processing/preprocessed_test_data.csv"
+
+data_validation_config:
+  root_dir: "artifacts/data/processed/stage_2_validation"
+  validated_data: "artifacts/data/processed/stage_2_validation/validated_stage_1_train_data.csv"
 
 data_stage_2_processing_config:
-  root_dir: "artifacts/data/processed/stage_2_processing"
-  train_data_path: "artifacts/data/processed/stage_2_processing/processed_train_data.csv"
-  test_data_path: "artifacts/data/processed/stage_2_processing/processed_test_data.csv"
+  root_dir: "artifacts/data/processed/stage_3_final_processing"
+  train_data_path: "artifacts/data/processed/stage_3_final_processing/processed_train_data.csv"
+  test_data_path: "artifacts/data/processed/stage_3_final_processing/processed_test_data.csv"
 
 data_split_config:
   root_dir: "artifacts/data/train_test"
@@ -90,6 +91,7 @@ model_metrics:
   root_dir: artifacts/metrics
   metrics: artifacts/metrics/metrics.yaml
   best_metric: artifacts/metrics/best_metric.yaml
+  model_trial_study_df: artifacts/metrics/model_trial_study_df.csv
 
 preprocessor:
   root_dir: "artifacts/preprocessor"

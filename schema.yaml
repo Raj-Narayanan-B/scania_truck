@@ -169,6 +169,5 @@ Features:
     ee_009: float64
     ef_000: float64
     eg_000: float64
-
 Target:
     class: int64
