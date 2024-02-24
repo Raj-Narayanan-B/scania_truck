@@ -46,7 +46,7 @@ import subprocess  # type: ignore
 from pathlib import Path  # type: ignore
 import numpy as np
 import pandas as pd
-exp_count = 293
+exp_count = 300
 ML_Model = NewType('Machine_Learning_Model', object)
 
 w.filterwarnings('ignore')
@@ -69,8 +69,8 @@ def crypter(encrypt_or_decrypt: str, file_name: str, data_to_encrypt: dict = Non
         data_to_encrypt: dict
             The dictionary of the data to be encrypted. Required for encryption only.
     """
-    key_path = "Secrets/Keys/" + file_name + "_secrets.key"
-    file_path = "Secrets/Secrets/" + file_name + "_config.yaml"
+    key_path = "my_project_secrets/Keys/" + file_name + "_secrets.key"
+    file_path = "my_project_secrets/Secrets/" + file_name + "_config.yaml"
 
     if encrypt_or_decrypt == 'encrypt':
         # Generate the unique for this data

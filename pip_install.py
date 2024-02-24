@@ -58,8 +58,3 @@
 
 
 # import dvc.api
-
-from dagshub import get_repo_bucket_client
-s3 = get_repo_bucket_client("Raj-Narayanan-B/scania_truck")
-
-s3.

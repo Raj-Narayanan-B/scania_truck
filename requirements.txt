@@ -3,7 +3,6 @@ numpy
 matplotlib
 seaborn
 scikit-learn
-mysqlclient
 pyyaml
 joblib
 python-box
@@ -15,6 +14,7 @@ dvc
 dvc[gdrive]
 dvc[s3]
 GitPython
+PyGithub
 pytest
 pytest-mock
 deprecation
@@ -25,8 +25,20 @@ nbformat
 tox
 ensure
 docker
+# astrapy
+mysqlclient
 apache-airflow
+apache-airflow-providers-amazon
+apache-airflow-providers-mysql
+# apache-airflow-providers-postgres
+# psycopg2-binary
+apache-airflow-providers-common-sql
+mysql-connector-python
+# apache-airflow[cncf.kubernetes]
+connexion[swagger-ui]
+# universal-pathlib
 optuna
+hyperopt
 tqdm
 xgboost
 lightgbm

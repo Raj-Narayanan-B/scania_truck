@@ -135,7 +135,7 @@ CREATE USER 'raj' IDENTIFIED BY 'admin';
 GRANT ALL PRIVILEGES ON airflow_db.* TO 'raj';
 
 Docker Airflow Container Run Command:
-docker run -p 8080:8080 -v F:/iNeuron/Projects/scania_failures_2/airflow/dags:/app/airflow/dags scania_truck:latest
+docker run -p 8080:8080 -v F:/iNeuron/Projects/scania_failures_2/airflow/dags:/app/airflow/dags scania_truck_airflow:latest
 
 
 Data_Validation

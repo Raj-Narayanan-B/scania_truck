@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 from pprint import pprint  # type: ignore
 import mlflow.sklearn
 from mlflow.client import MlflowClient
@@ -9,10 +10,10 @@ from imblearn.combine import SMOTETomek
 from src.components.stage_6_model_tuning_tracking_training import model_tuning_tracking_component
 from src.utils import save_yaml, load_binary, eval_metrics, save_binary, load_yaml
 from src import logger
-from src.constants import MLFLOW_URI, SCHEMA_PATH
+from src.constants import SCHEMA_PATH
 
 
-class model_trainer_component(model_tuning_tracking_component):
+class model_tester_component(model_tuning_tracking_component):
     def __init__(self):
         super().__init__()
         self.stage_1_config = self.get_stage1_processing_config()
@@ -23,11 +24,11 @@ class model_trainer_component(model_tuning_tracking_component):
         self.preprocessor = self.get_preprocessor_config()
         self.data_path_config = self.get_data_path_config()
 
-    def model_training(self):
+    def model_testing(self):
         schema = self.schema_path
         target = list(schema.Target.keys())[0]
-        client = MlflowClient(tracking_uri=MLFLOW_URI,
-                              registry_uri=MLFLOW_URI)
+        client = MlflowClient(tracking_uri=os.getenv('MLFLOW_TRACKING_URI'),
+                              registry_uri=os.getenv('MLFLOW_TRACKING_URI'))
         # client = MlflowClient()
 
         logger.info("loading training and testing datasets")
